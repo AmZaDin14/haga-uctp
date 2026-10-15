@@ -1,0 +1,48 @@
+# Python & Virtual Environments
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# MS Office / Temporary Lock Files
+~$*
+*.tmp
+*.temp
+*.docx
+
+# LaTeX Build Files & Large PDF Binaries
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.xdv
+*.pdf
+
+# Internal Scratchpads & Working Checkpoints
+.scratch/
+archive/
+
+# OS & Editor
+
+# Internal colloquium notes & agent configs
+AGENTS.md
+CONTEXT.md
+CATATAN_PEMBELAJARAN_HAGA.md
+colloquium-questions.tex
+docs/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
