@@ -30,8 +30,10 @@ class HAGA:
         tournament_k: int = 3,
         elitism_k: int = 2,
         els_elite_ratio: float = 0.10,
-        els_max_steps: int = 20,
+        els_max_steps: int = 50,
         max_evaluations: int = 25000,
+        enable_apc: bool = True,
+        enable_els: bool = True,
         random_seed: Optional[int] = None,
     ):
         self.problem = problem
@@ -49,8 +51,9 @@ class HAGA:
         self.els_elite_count = max(2, int(els_elite_ratio * pop_size))
         self.els_max_steps = els_max_steps
         self.max_evaluations = max_evaluations
+        self.enable_apc = enable_apc
+        self.enable_els = enable_els
         self.rng = np.random.default_rng(random_seed)
-
         self.eval_count = 0
 
     def _eval(self, chromosome: np.ndarray) -> Tuple[int, int, int]:
@@ -171,7 +174,10 @@ class HAGA:
         best_chrom = pop[best_idx].copy()
 
         initial_hnorm = self.calculate_diversity(pop)
-        init_pc, init_pm = self.adapt_parameters(initial_hnorm)
+        if self.enable_apc:
+            init_pc, init_pm = self.adapt_parameters(initial_hnorm)
+        else:
+            init_pc, init_pm = self.pc_base, self.pm_base
 
         history = [{
             "generation": 0,
@@ -191,8 +197,10 @@ class HAGA:
 
             # 1. Diversity measurement & parameter adaptation
             h_norm = self.calculate_diversity(pop)
-            pc, pm = self.adapt_parameters(h_norm)
-
+            if self.enable_apc:
+                pc, pm = self.adapt_parameters(h_norm)
+            else:
+                pc, pm = self.pc_base, self.pm_base
             # 2. Elitism: preserve top individuals
             sorted_indices = np.argsort(fitnesses)
             new_pop = [pop[sorted_indices[i]].copy() for i in range(self.elitism_k)]
@@ -232,7 +240,7 @@ class HAGA:
             fitnesses = np.array(new_fitnesses)
 
             # 4. Generational Elite Local Search (ELS) on top elite individuals
-            if self.eval_count < self.max_evaluations:
+            if self.enable_els and self.eval_count < self.max_evaluations:
                 current_sorted = np.argsort(fitnesses)
                 elite_targets = current_sorted[:min(self.els_elite_count, len(pop))]
 
@@ -269,9 +277,16 @@ class HAGA:
 
         elapsed = time.time() - start_time
 
+        algo_name = "HAGA"
+        if not self.enable_apc and not self.enable_els:
+            algo_name = "GA_Static"
+        elif self.enable_apc and not self.enable_els:
+            algo_name = "GA_APC"
+        elif not self.enable_apc and self.enable_els:
+            algo_name = "GA_ELS"
+
         return {
-            "algorithm": "HAGA",
-            "best_chromosome": best_chrom,
+            "algorithm": algo_name,
             "best_hcv": int(best_hcv),
             "best_scv": int(best_scv),
             "best_fitness": int(best_fitness),
