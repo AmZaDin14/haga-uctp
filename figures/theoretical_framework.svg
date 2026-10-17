@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 570" width="100%" height="100%" style="font-family: 'Times New Roman', Times, serif;">
+  <style>
+    :root {
+      --fg: #1e293b;
+      --muted: #475569;
+      --border: #94a3b8;
+      --surface: #ffffff;
+      --accent: #1d4ed8;
+      --success: #15803d;
+      --warning: #b45309;
+      --error: #b91c1c;
+      --card-bg: #f8fafc;
+    }
+  </style>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#1d4ed8" />
+    </marker>
+  </defs>
+
+  <!-- ================= KOLOM KIRI: TEORI FONDASI ================= -->
+  <rect x="20" y="20" width="225" height="530" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.2" />
+  <rect x="20" y="20" width="225" height="36" rx="6" fill="#e2e8f0" />
+  <path d="M 20 56 L 245 56" stroke="#64748b" stroke-width="1.2" />
+  <text x="132" y="43" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">1. LANDASAN TEORI FONDASI</text>
+
+  <!-- Box 1.1 -->
+  <rect x="32" y="70" width="201" height="135" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="42" y="92" font-size="11.5" font-weight="bold" fill="#0f172a">Optimasi UCTP</text>
+  <text x="42" y="112" font-size="10.5" fill="#334155">• Masalah NP-hard, ruang O(n!)</text>
+  <text x="42" y="128" font-size="10.5" fill="#334155">• Batasan kaku (HCV) &amp; lunak (SCV)</text>
+  <text x="42" y="144" font-size="10.5" fill="#334155">• Pemenuhan multi-konstrain</text>
+  <text x="42" y="174" font-size="9.5" font-style="italic" fill="#1d4ed8">(McCollum, 2010; Qu, 2009)</text>
+
+  <!-- Box 1.2 -->
+  <rect x="32" y="220" width="201" height="145" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="42" y="242" font-size="11.5" font-weight="bold" fill="#0f172a">Komputasi Evolusioner</text>
+  <text x="42" y="262" font-size="10.5" fill="#334155">• Metaheuristik populasi (GA)</text>
+  <text x="42" y="278" font-size="10.5" fill="#334155">• Seleksi, rekombinasi, mutasi</text>
+  <text x="42" y="294" font-size="10.5" fill="#334155">• Dilema eksplorasi-eksploitasi</text>
+  <text x="42" y="310" font-size="10.5" fill="#334155">• Risiko konvergensi prematur</text>
+  <text x="42" y="340" font-size="9.5" font-style="italic" fill="#1d4ed8">(Goldberg, 1989; Eiben, 1999)</text>
+
+  <!-- Box 1.3 -->
+  <rect x="32" y="380" width="201" height="155" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="42" y="402" font-size="11.5" font-weight="bold" fill="#0f172a">Kontrol Parameter GA</text>
+  <text x="42" y="422" font-size="10.5" fill="#334155">• Taksonomi: Statis vs Adaptif</text>
+  <text x="42" y="438" font-size="10.5" fill="#334155">• Umpan balik metrik populasi</text>
+  <text x="42" y="454" font-size="10.5" fill="#334155">• Clamping bounds parameter</text>
+  <text x="42" y="470" font-size="10.5" fill="#334155">• Determinisme adaptasi linier</text>
+  <text x="42" y="502" font-size="9.5" font-style="italic" fill="#1d4ed8">(Eiben, 1999; Karafotias, 2015)</text>
+
+  <!-- ================= KOLOM TENGAH: GAPS, HAGA, VALIDASI ================= -->
+
+  <!-- Card 2: Research Gaps (Atas) -->
+  <rect x="280" y="20" width="420" height="120" rx="6" fill="#fffbeb" stroke="#d97706" stroke-width="1.3" />
+  <text x="490" y="42" text-anchor="middle" font-size="12" font-weight="bold" fill="#b45309">2. KESENJANGAN RISET (RESEARCH GAPS)</text>
+  <text x="294" y="66" font-size="10.5" fill="#1e293b">• <tspan font-weight="bold">GA Statis:</tspan> Parameter kaku memicu stagnasi lokal <tspan font-style="italic" fill="#64748b">(Fachrie, 2021; Sari, 2019)</tspan></text>
+  <text x="294" y="86" font-size="10.5" fill="#1e293b">• <tspan font-weight="bold">Model Fuzzy:</tspan> Aturan inferensi berat &amp; osilasi parameter <tspan font-style="italic" fill="#64748b">(Herrera, 2003; Pamungkas, 2025)</tspan></text>
+  <text x="294" y="106" font-size="10.5" fill="#1e293b">• <tspan font-weight="bold">Paritas Anggaran:</tspan> Hibridisasi tanpa kuota evaluasi adil (Bmax) <tspan font-style="italic" fill="#64748b">(Kurniawan, 2025)</tspan></text>
+  <text x="294" y="126" font-size="10.5" fill="#1e293b">• <tspan font-weight="bold">Validasi Statistik:</tspan> Minim uji benchmark standar &amp; uji hipotesis <tspan font-style="italic" fill="#64748b">(Ikhwani, 2022)</tspan></text>
+
+  <!-- Card 3: Inti Usulan HAGA (Tengah / Hero Card) -->
+  <rect x="280" y="172" width="420" height="225" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" />
+  <rect x="281" y="173" width="418" height="32" rx="5" fill="#dcfce7" />
+  <text x="490" y="194" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#15803d">3. ARSITEKTUR METODE HAGA (USULAN SOLUSI)</text>
+
+  <!-- Modul 1 -->
+  <rect x="294" y="214" width="392" height="48" rx="4" fill="#ffffff" stroke="#bbf7d0" stroke-width="1" />
+  <text x="306" y="233" font-size="11" font-weight="bold" fill="#0f172a">1. Constraint-Aware 1D Chromosome Encoding</text>
+  <text x="306" y="250" font-size="10" fill="#475569">Panjang gen = total sesi kuliah; pemetaan bijektif ruang dan slot waktu</text>
+
+  <!-- Modul 2 -->
+  <rect x="294" y="270" width="392" height="54" rx="4" fill="#ffffff" stroke="#bbf7d0" stroke-width="1" />
+  <text x="306" y="288" font-size="11" font-weight="bold" fill="#0f172a">2. Linear Adaptive Parameter Control (APC)</text>
+  <text x="306" y="304" font-size="10" fill="#475569">Metrik jarak Hamming (Hnorm) mengendalikan Pc &amp; Pm secara deterministik</text>
+  <text x="306" y="318" font-size="9" font-style="italic" fill="#1d4ed8">(Sakal dkk., GECCO 2023; Cicirello, 2016)</text>
+
+  <!-- Modul 3 -->
+  <rect x="294" y="332" width="392" height="52" rx="4" fill="#ffffff" stroke="#bbf7d0" stroke-width="1" />
+  <text x="306" y="350" font-size="11" font-weight="bold" fill="#0f172a">3. Conflict-Directed Elite Local Search (ELS)</text>
+  <text x="306" y="366" font-size="10" fill="#475569">First-improvement hill climbing pada 10% individu terbaik (batas Smax = 50)</text>
+  <text x="306" y="378" font-size="9" font-style="italic" fill="#1d4ed8">(Skema pewarisan Lamarckian)</text>
+
+  <!-- Card 4: Protokol Validasi (Bawah) -->
+  <rect x="280" y="425" width="420" height="125" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.2" />
+  <rect x="280" y="425" width="420" height="30" rx="6" fill="#f1f5f9" />
+  <text x="490" y="445" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">4. PROTOKOL VALIDASI KOMPARATIF</text>
+  <text x="294" y="473" font-size="10.5" fill="#1e293b">• <tspan font-weight="bold">Multi-Corpus:</tspan> 21 Instance ITC 2007 CB-CTT + Data Riil UM Metro + Sintetis</text>
+  <text x="294" y="492" font-size="10.5" fill="#1e293b">• <tspan font-weight="bold">Paritas Anggaran:</tspan> Kuota evaluasi global bersama Bmax = 50.000 (vs GA, PSO, SA)</text>
+  <text x="294" y="511" font-size="10.5" fill="#1e293b">• <tspan font-weight="bold">Uji Statistik:</tspan> 30 Run independen, Wilcoxon signed-rank, Friedman, &amp; Nemenyi</text>
+  <text x="294" y="530" font-size="9.5" font-style="italic" fill="#1d4ed8">(Demšar, JMLR 2006; McCollum dkk., 2010)</text>
+
+  <!-- ================= KOLOM KANAN: KONTRIBUSI ================= -->
+  <rect x="735" y="20" width="225" height="530" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.2" />
+  <rect x="735" y="20" width="225" height="36" rx="6" fill="#e2e8f0" />
+  <path d="M 735 56 L 960 56" stroke="#64748b" stroke-width="1.2" />
+  <text x="847" y="43" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">5. KONTRIBUSI RISET</text>
+
+  <!-- Box 5.1 Teoretis -->
+  <rect x="747" y="70" width="201" height="215" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="757" y="92" font-size="11.5" font-weight="bold" fill="#0f172a">Kontribusi Teoretis</text>
+  <text x="757" y="116" font-size="10" fill="#334155">• Formulasi model kontrol</text>
+  <text x="767" y="130" font-size="10" fill="#334155">parameter adaptif linier</text>
+  <text x="767" y="144" font-size="10" fill="#334155">tertutup berbasis keragaman</text>
+  <text x="767" y="158" font-size="10" fill="#334155">genotipik Hamming untuk</text>
+  <text x="767" y="172" font-size="10" fill="#334155">masalah optimasi UCTP.</text>
+  <text x="757" y="196" font-size="10" fill="#334155">• Pembuktian kausalitas</text>
+  <text x="767" y="210" font-size="10" fill="#334155">isolasi modul adaptif dan</text>
+  <text x="767" y="224" font-size="10" fill="#334155">ELS melalui rancangan studi</text>
+  <text x="767" y="238" font-size="10" fill="#334155">ablasi berparitas anggaran</text>
+  <text x="767" y="252" font-size="10" fill="#334155">evaluasi objektif ketat.</text>
+
+  <!-- Box 5.2 Praktis -->
+  <rect x="747" y="300" width="201" height="235" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="757" y="322" font-size="11.5" font-weight="bold" fill="#0f172a">Kontribusi Praktis</text>
+  <text x="757" y="346" font-size="10" fill="#334155">• Sistem otomasi jadwal</text>
+  <text x="767" y="360" font-size="10" fill="#334155">perkuliahan bebas bentrok</text>
+  <text x="767" y="374" font-size="10" fill="#334155">(HCV = 0) untuk Program</text>
+  <text x="767" y="388" font-size="10" fill="#334155">Studi Ilmu Komputer UM</text>
+  <text x="767" y="402" font-size="10" fill="#334155">Metro (runtime &lt; 5 menit).</text>
+  <text x="757" y="426" font-size="10" fill="#334155">• Repositori kode sumber</text>
+  <text x="767" y="440" font-size="10" fill="#334155">terbuka di GitHub beserta</text>
+  <text x="767" y="454" font-size="10" fill="#334155">berkas tolok ukur untuk</text>
+  <text x="767" y="468" font-size="10" fill="#334155">mendukung keterbukaan</text>
+  <text x="767" y="482" font-size="10" fill="#334155">&amp; reproduksibilitas riset.</text>
+
+  <!-- ================= PENGHUBUNG ALUR (ARROWS) ================= -->
+  <!-- Dari Kolom 1 ke Kolom 2 (HAGA) -->
+  <line x1="245" y1="284" x2="276" y2="284" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arrow)" />
+  
+  <!-- Dari Gaps (Atas) ke HAGA -->
+  <line x1="490" y1="140" x2="490" y2="168" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Dari HAGA ke Validasi (Bawah) -->
+  <line x1="490" y1="397" x2="490" y2="421" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Dari HAGA ke Kontribusi Teoretis (Kanan) -->
+  <line x1="700" y1="220" x2="731" y2="220" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Dari Validasi ke Kontribusi Praktis (Kanan) -->
+  <line x1="700" y1="480" x2="731" y2="480" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arrow)" />
+
+</svg>

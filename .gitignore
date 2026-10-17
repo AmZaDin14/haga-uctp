@@ -42,6 +42,9 @@ colloquium-questions.tex
 docs/
 .DS_Store
 Thumbs.db
+
+# Temporary visual test renders
+test_*.png
 .vscode/
 .idea/
 *.swp
