@@ -117,7 +117,7 @@ Benchmarked on official competition instance **ITC 2007 CB-CTT `comp01.ctt`** (3
 
 ## 🚀 Reproduction Guide
 
-Reproduce all experimental results and statistical figures in three simple steps:
+Install the dependencies, then check the pipeline before launching the full benchmark.
 
 ### 1. Clone the Repository
 ```bash
@@ -132,15 +132,97 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Run the Benchmark Experiment
+### 3. Check the Multi-Instance Pipeline
+
 ```bash
-python3 -m src.runner
+python scripts/run_benchmark_suite.py \
+  --experiment-id pipeline-smoke --stage smoke \
+  --evals 200 --pop 10 --seeds 3 --workers 3
 ```
 
-The script will:
-* Run 10 independent seeds for both Canonical GA and HAGA under identical evaluation quotas ($B_{\max} = 25{,}000$).
-* Execute the Wilcoxon signed-rank test.
-* Output `prapenelitian_summary.csv`, `prapenelitian_convergence.csv`, and regenerate all comparison charts into `results/`.
+This runs Canonical GA, Discrete PSO, SA and HAGA on `comp01`, `comp07` and
+`comp12`: 36 runs with a small evaluation budget. Smoke and pilot reports are
+descriptive only; they do not make inferential performance claims.
+
+### 4. Pilot at the Final Evaluation Budget
+
+```bash
+python scripts/run_benchmark_suite.py \
+  --experiment-id comparative-pilot --stage pilot \
+  --evals 50000 --pop 50 --seeds 3 --workers 10
+```
+
+The same three instances exercise the pipeline at the final budget. Check
+completion, budget accounting, per-run persistence and resume before proceeding.
+Pilot success does not require HAGA to outperform the baselines.
+
+### 5. Run All 21 Instances
+
+```bash
+python scripts/run_benchmark_suite.py \
+  --experiment-id comparative-main --stage main \
+  --evals 50000 --pop 50 --seeds 30 --workers 10
+```
+
+Main mode defaults to `comp01`–`comp21` and requires all 21 instance IDs and 30
+seeds. Instances execute sequentially; the worker limit applies to the whole
+experiment, not separately to every instance. This configuration has 2,520 runs.
+Use `--mode ablation` for the four-stage ablation instead of the comparative suite.
+For a single-instance experiment, use `python -m src.runner` with the same
+required `--experiment-id` and an explicit `--instance data/itc2007/comp01.ctt`.
+Custom subsets use `--instances <path> <path> ...` in smoke/pilot mode.
+
+### Persistence, Resume and Reports
+
+```text
+results/<experiment-id>/
+  manifest.json
+  execution.log
+  experiment_summary.csv
+  per_instance_algorithm_summary.csv
+  instance_fitness_medians.csv
+  analysis.json
+  comp01/
+    runs/<algorithm>/<seed>.json
+    experiment_summary.csv
+    experiment_convergence.csv
+    convergence.png
+    boxplot.png
+```
+
+- Each completed run commits its summary and history together as an atomic JSON
+  record, immediately when its worker finishes. CSVs and plots are rebuildable
+  exports, not the source of completion status.
+- Repeat the exact command to resume. Valid completed records are reused without
+  modification; missing or corrupt records are recomputed. A failed attempt has
+  a separate `<seed>.failed.json` marker and never counts as completion.
+- The manifest freezes dataset paths/hashes, resolved algorithm parameters,
+  seeds, budget, source hashes, Git revision, Python/dependency versions and
+  machine identity. Configuration/provenance changes require a new experiment
+  ID; worker count may change when resuming and is recorded in `execution.log`.
+- One writer may own an experiment directory at a time (POSIX advisory lock).
+  Ctrl-C or SIGTERM stops new submissions, finishes and saves active runs, then
+  exits with status 130. Failed/incomplete execution exits nonzero.
+- Add `--analyze-only` to the same command to regenerate CSVs, plots and analysis
+  without executing missing runs. An incomplete grid is reported explicitly and
+  returns nonzero. Stored run records are unchanged.
+- Analysis uses one median internal fitness per instance–algorithm. Only a
+  complete main experiment enables Friedman across instances and two-sided
+  HAGA-versus-baseline Wilcoxon comparisons with Holm correction. Seeds are
+  nested repetitions, not independent instance-level statistical units.
+- HCV and feasibility are reported separately. SCV distributions and summaries
+  use feasible runs only; algorithms without feasible runs are labelled rather
+  than assigned a zero cost. Convergence medians align logged histories at
+  common evaluation budgets using best-so-far step values.
+- Existing files directly under `results/` are historical outputs and are not
+  overwritten or automatically imported. Pilot and main IDs also remain
+  separate: this runner does not silently pool results from different manifests.
+
+Run the storage and analysis regressions with:
+
+```bash
+python -m unittest discover -s tests -v
+```
 
 ---
 
