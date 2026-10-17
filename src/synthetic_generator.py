@@ -4,9 +4,10 @@ Generates controlled benchmark instances in standard ITC 2007 CTT format.
 Supports variable course counts (E in {50, 100, 200}) and target room utilization.
 """
 
+from __future__ import annotations
+
 import math
 import os
-from typing import Dict, List, Optional
 import numpy as np
 
 
@@ -26,8 +27,8 @@ def generate_synthetic_ctt(
 
     # 1. Generate Courses
     # Each course has 2 to 4 lectures (typical academic weighting: 2, 3, or 4 SKS)
-    lectures_per_course = rng.integers(min_lectures, max_lectures + 1, size=num_courses)
-    total_lectures = int(np.sum(lectures_per_course))
+    lectures_per_course: list[int] = [int(i) for i in rng.integers(min_lectures, max_lectures + 1, size=num_courses).tolist()]
+    total_lectures = sum(lectures_per_course)
 
     # 2. Compute Rooms needed for target utilization
     # Utilization = total_lectures / (num_rooms * total_slots_per_room)
@@ -36,41 +37,36 @@ def generate_synthetic_ctt(
 
     # 3. Generate Teachers (approx 1 teacher per 2-3 courses)
     num_teachers = max(5, int(num_courses / 2.2))
-    course_teachers = [f"T{rng.integers(1, num_teachers + 1):03d}" for _ in range(num_courses)]
+    course_teachers: list[str] = [f"T{int(rng.integers(1, num_teachers + 1)):03d}" for _ in range(num_courses)]
 
-    # 4. Generate Students per course (20 to 100)
-    course_students = rng.integers(20, 101, size=num_courses)
+    course_students: list[int] = [int(i) for i in rng.integers(20, 101, size=num_courses).tolist()]
 
     # 5. Generate Room Capacities (25 to 120)
-    room_capacities = rng.integers(30, 121, size=num_rooms)
+    room_capacities: list[int] = [int(i) for i in rng.integers(30, 121, size=num_rooms).tolist()]
 
     # 6. Generate Curricula (groups of courses that cannot overlap)
-    # Typical university has 4 to 8 active cohorts/semesters
     num_curricula = max(4, int(num_courses / 8))
-    curricula: Dict[str, List[str]] = {f"Curr{c+1:02d}": [] for c in range(num_curricula)}
+    curricula: dict[str, list[str]] = {f"Curr{c+1:02d}": [] for c in range(num_curricula)}
 
     for i in range(num_courses):
         course_id = f"C{i+1:03d}"
-        # Each course belongs to 1 primary curriculum, 20% probability of secondary
-        curr_idx = rng.integers(0, num_curricula)
+        curr_idx = int(rng.integers(0, num_curricula))
         curricula[f"Curr{curr_idx+1:02d}"].append(course_id)
         if rng.random() < 0.20:
-            sec_idx = (curr_idx + rng.integers(1, num_curricula)) % num_curricula
+            sec_idx = int((curr_idx + rng.integers(1, num_curricula)) % num_curricula)
             curricula[f"Curr{sec_idx+1:02d}"].append(course_id)
 
     # 7. Generate Unavailability Constraints (e.g., teacher unavailabilities)
-    # Approx 5-10% of total slots have teacher unavailabilities
-    unavailabilities = []
+    unavailabilities: list[tuple[str, int, int]] = []
     for i in range(num_courses):
         course_id = f"C{i+1:03d}"
-        # 2 random slots unavailable
         if rng.random() < 0.35:
-            d = rng.integers(0, days)
-            p = rng.integers(0, periods_per_day)
+            d = int(rng.integers(0, days))
+            p = int(rng.integers(0, periods_per_day))
             unavailabilities.append((course_id, d, p))
 
     # Format into CTT string
-    lines = [
+    lines: list[str] = [
         f"Name: {name}",
         f"Courses: {num_courses}",
         f"Rooms: {num_rooms}",
@@ -109,10 +105,10 @@ def generate_synthetic_ctt(
     return "\n".join(lines) + "\n"
 
 
-def create_synthetic_benchmark_suite(output_dir: str = "data/synthetic") -> List[str]:
+def create_synthetic_benchmark_suite(output_dir: str = "data/synthetic") -> list[str]:
     """Generate the three proposal-specified synthetic instances: E=50, 100, 200."""
     os.makedirs(output_dir, exist_ok=True)
-    generated_paths = []
+    generated_paths: list[str] = []
 
     configs = [
         ("synthetic_50", 50, 42),
@@ -132,4 +128,4 @@ def create_synthetic_benchmark_suite(output_dir: str = "data/synthetic") -> List
 
 
 if __name__ == "__main__":
-    create_synthetic_benchmark_suite()
+    _ = create_synthetic_benchmark_suite()
