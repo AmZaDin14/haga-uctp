@@ -26,6 +26,7 @@ from src.haga import HAGA
 from src.loader import parse_ctt
 from src.problem import TimetablingProblem
 from src.pso import DiscretePSO
+from src.saga import SAGA_Reconstructed
 from src.sa import SimulatedAnnealing
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,11 +37,14 @@ ALGORITHMS = {
     "HAGA": HAGA,
     "GA_APC": HAGA,
     "GA_ELS": HAGA,
+    "SAGA_Reconstructed": SAGA_Reconstructed,
 }
 MODES = {
     "preliminary": ["Canonical_GA", "HAGA"],
     "comparative": ["Canonical_GA", "Discrete_PSO", "Simulated_Annealing", "HAGA"],
     "ablation": ["Canonical_GA", "GA_APC", "GA_ELS", "HAGA"],
+    "saga_comparison": ["Canonical_GA", "HAGA", "SAGA_Reconstructed"],
+    "full_comparison": ["Canonical_GA", "Discrete_PSO", "Simulated_Annealing", "HAGA", "SAGA_Reconstructed"],
 }
 SUMMARY_COLUMNS = [
     "instance", "algorithm", "seed", "best_hcv", "best_scv", "best_fitness",
@@ -223,7 +227,7 @@ def run_experiment(manifest: dict[str, Any], output_dir: Path, workers: int,
                         frame = pd.DataFrame([record["summary"] for record in records], columns=SUMMARY_COLUMNS)
                         history = pd.DataFrame([row for record in records for row in record["history"]])
                         export_instance(frame, history, output_dir / instance)
-                        summaries.extend(frame.to_dict("records"))
+                        summaries.extend([record["summary"] for record in records])
                 # Include cached results of not-yet-visited instances after interruption.
                 visited = {summary["instance"] for summary in summaries}
                 for instance in instance_ids:
