@@ -10,6 +10,8 @@ from pathlib import Path
 import tempfile
 from typing import Any, BinaryIO
 
+from src.problem import HARD_CONSTRAINT_WEIGHT
+
 
 class ExperimentStore:
     """Persist one experiment while holding an exclusive, nonblocking writer lock.
@@ -228,6 +230,12 @@ class ExperimentStore:
         self._finite_number(summary.get("runtime_seconds"), "Summary runtime_seconds")
         if summary["runtime_seconds"] < 0:
             raise ValueError("Summary runtime_seconds must be nonnegative")
+        best_chromosome = record.get("best_chromosome")
+        if not isinstance(best_chromosome, list) or not best_chromosome:
+            raise ValueError("Run best_chromosome must be a nonempty list")
+        for gene in best_chromosome:
+            if type(gene) is not int or gene < 0:
+                raise ValueError("Every gene in best_chromosome must be a nonnegative integer")
         history = record.get("history")
         if not isinstance(history, list) or not history:
             raise ValueError("Run history must be a nonempty list")
@@ -269,8 +277,8 @@ class ExperimentStore:
         cls._nonnegative_int(row.get("best_hcv"), "best_hcv")
         cls._nonnegative_int(row.get("best_scv"), "best_scv")
         cls._finite_number(row.get("best_fitness"), "best_fitness")
-        if row["best_fitness"] != 1000 * row["best_hcv"] + row["best_scv"]:
-            raise ValueError("best_fitness must equal 1000 * best_hcv + best_scv")
+        if row["best_fitness"] != HARD_CONSTRAINT_WEIGHT * row["best_hcv"] + row["best_scv"]:
+            raise ValueError(f"best_fitness must equal {HARD_CONSTRAINT_WEIGHT} * best_hcv + best_scv")
 
     @staticmethod
     def _nonnegative_int(value: Any, label: str) -> None:

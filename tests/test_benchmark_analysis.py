@@ -48,7 +48,7 @@ class BenchmarkAnalysisTests(unittest.TestCase):
         rows = self.rows()
         mask = (rows["instance"] == "comp01") & (rows["algorithm"] == "HAGA")
         indices = rows.index[mask]
-        rows.loc[indices[0], ["best_hcv", "best_scv", "best_fitness", "feasible"]] = [1, 99999, 100999, 0]
+        rows.loc[indices[0], ["best_hcv", "best_scv", "best_fitness", "feasible"]] = [1, 99999, 199999, 0]
         report, _ = self.aggregate(rows)
         cell = next(item for item in report["descriptive"]
                     if item["instance"] == "comp01" and item["algorithm"] == "HAGA")

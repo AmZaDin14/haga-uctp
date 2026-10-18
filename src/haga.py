@@ -287,6 +287,7 @@ class HAGA:
 
         return {
             "algorithm": algo_name,
+            "best_chromosome": best_chrom.copy(),
             "best_hcv": int(best_hcv),
             "best_scv": int(best_scv),
             "best_fitness": int(best_fitness),

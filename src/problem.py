@@ -9,6 +9,8 @@ import numpy as np
 
 from src.loader import ProblemInstance
 
+HARD_CONSTRAINT_WEIGHT: int = 100_000
+
 
 class TimetablingProblem:
     def __init__(self, instance: ProblemInstance):
@@ -83,7 +85,7 @@ class TimetablingProblem:
     def evaluate(self, chromosome: np.ndarray) -> Tuple[int, int, int]:
         """
         Evaluate chromosome and return (HCV, SCV, composite_fitness).
-        composite_fitness = 1000 * HCV + SCV
+        composite_fitness = HARD_CONSTRAINT_WEIGHT * HCV + SCV (Strict Feasibility Dominance)
         """
         timeslots, rooms = self.decode(chromosome)
         
@@ -182,7 +184,7 @@ class TimetablingProblem:
                     if (p - 1) not in day_periods and (p + 1) not in day_periods:
                         scv += 2
 
-        fitness = 1000 * hcv + scv
+        fitness = HARD_CONSTRAINT_WEIGHT * hcv + scv
         return hcv, scv, fitness
 
     def get_conflicted_lectures(self, chromosome: np.ndarray) -> List[int]:

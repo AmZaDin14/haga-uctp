@@ -131,8 +131,15 @@ def _run_one(instance: str, path: str, algorithm: str, seed: int,
         "evaluations": int(result["total_evaluations"]),
         "runtime_seconds": float(result["runtime_seconds"]),
     }
+    best_chromosome = [int(x) for x in result["best_chromosome"]]
     history = [{**row, **identity} for row in result["history"]]
-    return {"schema_version": 1, **identity, "summary": summary, "history": history}
+    return {
+        "schema_version": 1,
+        **identity,
+        "summary": summary,
+        "best_chromosome": best_chromosome,
+        "history": history,
+    }
 
 
 def run_experiment(manifest: dict[str, Any], output_dir: Path, workers: int,

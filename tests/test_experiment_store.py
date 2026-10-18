@@ -63,6 +63,7 @@ class ExperimentStoreTests(unittest.TestCase):
                 "generations": 1,
                 "runtime_seconds": 0.125,
             },
+            "best_chromosome": [0, 1],
             "history": [
                 {
                     **identity,
@@ -70,7 +71,7 @@ class ExperimentStoreTests(unittest.TestCase):
                     "evaluations": 2,
                     "best_hcv": 1,
                     "best_scv": 5,
-                    "best_fitness": 1005,
+                    "best_fitness": 100005,
                     "mean_fitness": 1200.0,
                     "h_norm": 0.5,
                     "pc": 0.8,
@@ -303,7 +304,7 @@ class ExperimentStoreTests(unittest.TestCase):
             ("evaluations", 5),
             ("best_hcv", -1),
             ("best_scv", 5.0),
-            ("best_fitness", 1006),
+            ("best_fitness", 100006),
             ("mean_fitness", float("inf")),
             ("mean_fitness", True),
             ("h_norm", float("nan")),
@@ -322,6 +323,12 @@ class ExperimentStoreTests(unittest.TestCase):
         record = self.record()
         record["history"] = []
         cases.append(("empty history", record))
+        record = self.record()
+        record.pop("best_chromosome")
+        cases.append(("missing best_chromosome", record))
+        record = self.record()
+        record["best_chromosome"] = ["invalid_slot"]
+        cases.append(("non-int best_chromosome", record))
         record = self.record()
         record["history"][0]["seed"] = 8
         cases.append(("history identity mismatch", record))
@@ -359,7 +366,7 @@ class ExperimentStoreTests(unittest.TestCase):
         middle = deepcopy(record["history"][0])
         middle["evaluations"] = 3
         middle["best_scv"] = 6
-        middle["best_fitness"] = 1006
+        middle["best_fitness"] = 100006
         record["history"].insert(1, middle)
         with ExperimentStore(self.root, self.manifest) as store:
             with self.assertRaisesRegex(ValueError, "nonincreasing"):
@@ -385,7 +392,7 @@ class ExperimentStoreTests(unittest.TestCase):
         corruptions = []
         for field, value in (
             ("evaluations", 0),
-            ("best_fitness", 1006),
+            ("best_fitness", 100006),
             ("mean_fitness", float("nan")),
             ("pc", float("inf")),
         ):
