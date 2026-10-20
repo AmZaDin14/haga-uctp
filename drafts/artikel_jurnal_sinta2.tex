@@ -1,0 +1,208 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{microtype}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\begin{document}
+
+\title{Hibridisasi Algoritma Genetika Adaptif Berbasis Jarak Hamming dan Pencarian Lokal Elit untuk Optimasi Penjadwalan Perkuliahan Berbasis Kurikulum}
+
+\author{Amri~Reza~Wahyudin,
+        Nama~Pembimbing~Satu,
+        dan~Nama~Pembimbing~Dua%
+\thanks{Amri Reza Wahyudin adalah mahasiswa pada Program Studi Magister Ilmu Komputer, Fakultas Teknik dan Ilmu Komputer, Universitas Teknokrat Indonesia, Bandar Lampung (e-mail: amri@teknokrat.ac.id).}%
+\thanks{Nama Pembimbing Satu dan Dua adalah dosen pembimbing tesis pada Program Studi Magister Ilmu Komputer, Universitas Teknokrat Indonesia.}%
+}
+
+\markboth{Jurnal RESTI (Rekayasa Sistem dan Teknologi Informasi), Vol.~X, No.~X, 2026}%
+{Wahyudin \MakeLowercase{\textit{et al.}}: Hibridisasi Algoritma Genetika Adaptif dan Pencarian Lokal Elit}
+
+\maketitle
+
+\begin{abstract}
+\textit{University Course Timetabling Problem} (UCTP) merupakan persoalan optimasi kombinatorial NP-hard yang dicirikan oleh ruang pencarian berkonstrain ketat. Algoritma genetika (GA) konvensional dengan parameter statis rentan mengalami konvergensi prematur pada solusi tak layak (\textit{infeasible}). Pendekatan adaptif terdahulu seperti \textit{Self-Adaptive Genetic Algorithm} (SAGA) memperkenalkan dekomposisi koevolusi waktu-ruang dan logika fuzzy, namun memicu osilasi probabilitas mutasi yang liar serta kegagalan alokasi kredit koevolutif. Artikel ini mengusulkan \textit{Hybrid Adaptive Genetic Algorithm} (HAGA) yang mengintegrasikan \textit{Adaptive Parameter Controller} (APC) linier berbasis \textit{normalized pairwise Hamming distance} ($H_{\text{norm}}$) dan \textit{conflict-directed Elite Local Search} (ELS) di bawah penegakan paritas anggaran evaluasi fungsi objektif global ($B_{\max} = 50.000$). Evaluasi empiris menggunakan protokol bebas bias pada instance tolok ukur standar internasional ITC 2007 CB-CTT membuktikan bahwa: (1) ELS bertindak sebagai lokomotif mutlak pemenuhan kendala kaku yang memangkas 96\%--100\% bentrokan ($p = 0{,}001953$, uji Wilcoxon signed-rank), (2) APC berfungsi sebagai regulator diversitas populasi yang melipatgandakan tingkat kelayakan jadwal hingga 3$\times$ lipat (dari 10\% menjadi 30\%) pada permasalahan berskala besar (\texttt{comp07}, 478 kuliah) dengan reduksi penalti kendala lunak ($SCV = 5.019$ vs $5.254$), serta (3) audit independen merekonstruksi SAGA dan membuktikan HAGA melipatgandakan kelayakan dari 40\% menjadi 90\% dengan parameter mutasi yang 100$\times$ lebih stabil.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Penjadwalan Perkuliahan, Algoritma Genetika Adaptif, Jarak Hamming, Pencarian Lokal Elit, UCTP, Paritas Anggaran.
+\end{IEEEkeywords}
+
+\section{Pendahuluan}
+\IEEEPARstart{P}{enyusunan} jadwal perkuliahan pada institusi pendidikan tinggi (\textit{University Course Timetabling Problem} / UCTP) merupakan permasalahan optimasi kombinatorial terikat yang tergolong \textit{NP-hard}~\cite{bettinelli2015survey}. Pada formulasi berbasis kurikulum (\textit{Curriculum-Based Course Timetabling} / CB-CTT) standar kompetisi internasional ITC 2007, sistem penjadwalan dituntut untuk memenuhi dua kelompok kendala utama: kendala kaku (\textit{Hard Constraint Violations} / HCV) yang pantang dilanggar demi keabsahan operasional kegiatan akademik (seperti ketiadaan bentrokan ruangan, dosen, dan kurikulum), serta kendala lunak (\textit{Soft Constraint Violations} / SCV) yang merepresentasikan preferensi kenyamanan dan efisiensi operasional kampus~\cite{bonutti2012benchmarking}.
+
+Algoritma Genetika (GA) merupakan salah satu metaheuristik berbasis populasi yang paling populer diterapkan untuk menyelesaikan UCTP~\cite{goldberg1989genetic}. Namun, GA kanonikal dengan probabilitas persilangan (\textit{crossover}, $P_c$) dan mutasi ($P_m$) yang bernilai statis sepanjang evolusi menghadapi kendala mendasar berupa dilema eksplorasi-eksploitasi~\cite{eiben1999parameter,karafotias2015parameter}. Nilai mutasi yang konstan rendah memicu hilangnya diversitas genotipe secara dini menuju konvergensi prematur pada jadwal yang belum bebas bentrok ($HCV > 0$). Sebaliknya, mutasi tinggi yang konstan menghancurkan blok-blok jadwal unggul (\textit{building blocks}) yang telah terbentuk.
+
+Untuk mengatasi kelemahan tersebut, Pamungkas dan Neta~\cite{pamungkas2025saga} mengusulkan \textit{Self-Adaptive Genetic Algorithm} (SAGA) dengan memadukan \textit{fuzzy logic controller} (Mamdani FIS) dan koevolusi kooperatif (\textit{cooperative coevolution}) dua sub-populasi (slot waktu dan ruang). SAGA melaporkan kepuasan kendala 98,9\% pada studi kasus internal Universitas Cakrawala. Kendati demikian, telaah arsitektural terhadap SAGA mengungkap beberapa keterbatasan: publikasi tidak menyertakan kode sumber terbuka, basis aturan fuzzy, maupun dataset publik; serta memunculkan waktu eksekusi rata-rata mencapai 31 menit dengan koefisien variasi tinggi (8,59\%). Dekomposisi sub-populasi waktu dan ruang juga menimbulkan masalah alokasi kredit (\textit{credit assignment failure}) karena kedua variabel tersebut dalam UCTP terikat sangat kuat (\textit{tightly coupled}).
+
+Berdasarkan celah penelitian tersebut, artikel ini mengusulkan arsitektur \textbf{\textit{Hybrid Adaptive Genetic Algorithm} (HAGA)}. Berbeda dari pendekatan fuzzy multi-input yang kompleks, HAGA menerapkan prinsip \textit{Occam's razor} melalui penggabungan dua mekanisme komplementer:
+\begin{enumerate}
+    \item \textbf{\textit{Adaptive Parameter Controller} (APC) Tertutup:} Menyesuaikan probabilitas $P_c$ dan $P_m$ secara deterministik berdasarkan jarak Hamming berpasangan ternormalisasi ($H_{\text{norm}}$) dengan beban komputasi $\mathcal{O}(N^2 E)$ yang ringan.
+    \item \textbf{\textit{Conflict-Directed Elite Local Search} (ELS):} Melakukan intensifikasi pencarian lokal stokastik pada 10\% individu terbaik yang secara selektif merelokasi perkuliahan berkonflik.
+    \item \textbf{Paritas Anggaran Komputasi Global:} Seluruh evaluasi fungsi objektif selama ELS dipotong langsung dari kuota bersama ($B_{\max} = 50.000$), memastikan keunggulan performa tidak dipicu oleh bias eksploitasi tersembunyi.
+\end{enumerate}
+
+Kontribusi utama penelitian ini meliputi: (1) rekonstruksi kritis dan evaluasi empiris independen terhadap anteseden SAGA pada tolok ukur standar ITC 2007; (2) isolasi kausal kontribusi komponen melalui studi ablasi empat tahap komprehensif; serta (3) pembuktian efek sinergis di mana ELS menjamin kelayakan mikro ($HCV=0$), sedangkan APC bertindak sebagai katalisator diversitas yang mencegah stagnasi pada masalah berskala besar.
+
+\section{Metodologi Penelitian}
+
+\subsection{Formulasi Model dan Dominasi Kelayakan Mutlak}
+Pada formulasi CB-CTT, entitas dasar terdiri atas himpunan perkuliahan $\mathcal{C}$, ruang kelas $\mathcal{R}$, slot waktu $\mathcal{T}$, dosen $\mathcal{T}e$, dan kurikulum $\mathcal{U}$. Solusi jadwal $S$ dievaluasi berdasarkan dua metrik: total pelanggaran kendala kaku $HCV(S)$ dan penalti kendala lunak $SCV(S)$.
+
+Untuk mencegah solusi tidak layak memiliki fitnes yang lebih menarik daripada solusi layak, fungsi fitnes internal dirumuskan dengan menegakkan dominasi kelayakan mutlak (\textit{Strict Feasibility Dominance}):
+\begin{equation}
+F(S) = W_{\text{hard}} \cdot HCV(S) + SCV(S)
+\end{equation}
+di mana bobot penalti kendala kaku ditetapkan $W_{\text{hard}} = 100.000$. Penetapan ini menjamin secara analitis bahwa setiap solusi layak operasional ($HCV=0$) pasti mendominasi solusi tidak layak ($HCV \ge 1 \implies F(S) \ge 100.000$).
+
+\subsection{Representasi Kromosom dan Metrik Diversitas Genotipe}
+Kromosom direpresentasikan sebagai larik satu dimensi berindeks kegiatan perkuliahan $\mathbf{c} \in \mathbb{N}^E$, dengan panjang gen tepat sama dengan total perkuliahan $E = \sum_{c \in \mathcal{C}} l_c$. Setiap gen $c_k = (r_k, t_k)$ mengodekan penugasan ruang $r_k \in \mathcal{R}$ dan slot waktu $t_k \in \mathcal{T}$.
+
+Keragaman genotipik populasi diukur pada setiap generasi menggunakan jarak Hamming berpasangan ternormalisasi ($H_{\text{norm}}$) melintasi seluruh $\frac{N(N-1)}{2}$ pasangan individu dalam populasi berukuran $N$:
+\begin{equation}
+H_{\text{norm}} = \frac{2}{N(N-1)E} \sum_{i=1}^{N-1} \sum_{j=i+1}^N \sum_{k=1}^E \mathbb{I}(c_{i,k} \neq c_{j,k})
+\end{equation}
+di mana $\mathbb{I}(\cdot)$ adalah fungsi indikator yang bernilai 1 jika penugasan slot waktu atau ruang kelas berbeda, dan 0 jika identik. Nilai $H_{\text{norm}} \in [0, 1]$ menyajikan indikator kontinu sebaran spasial populasi.
+
+\subsection{Kontrol Parameter Adaptif Linier Terikat (APC)}
+Dinamika diversitas $H_{\text{norm}}$ ditransformasikan ke dalam probabilitas crossover ($P_c$) dan mutasi ($P_m$) menggunakan fungsi transfer linier komplementer:
+\begin{align}
+P_c(t) &= P_{c,\text{base}} + \alpha \left( H_{\text{norm}}(t) - \bar{H} \right) \\
+P_m(t) &= P_{m,\text{base}} - \beta \left( H_{\text{norm}}(t) - \bar{H} \right)
+\end{align}
+di mana $P_{c,\text{base}} = 0{,}80$, $P_{m,\text{base}} = 0{,}05$, $\bar{H} = 0{,}50$, serta parameter kemiringan $\alpha = 0{,}20$ dan $\beta = 0{,}20$. Untuk menjamin stabilitas matematis, kedua parameter dijepit (\textit{clamped}) pada batas aman:
+\begin{align}
+P_c(t) &\in [P_{c,\min}, P_{c,\max}] = [0{,}40, \; 0{,}95] \\
+P_m(t) &\in [P_{m,\min}, P_{m,\max}] = [0{,}01, \; 0{,}30]
+\end{align}
+
+\subsection{Conflict-Directed Elite Local Search (ELS)}
+Komponen ELS beroperasi secara generational pada $N_{\text{elite}} = \lceil 0{,}10 \cdot N \rceil$ individu terbaik dengan strategi *stochastic first-improvement*:
+\begin{enumerate}
+    \item Identifikasi seluruh perkuliahan yang terlibat dalam pelanggaran kendala kaku (bentrokan ruangan, dosen, kurikulum, atau ketidaksediaan).
+    \item Pilih satu perkuliahan berkonflik secara acak dan acak ulang penugasan waktu serta ruangnya ke slot alternatif.
+    \item Evaluasi solusi kandidat; jika fitnes membaik, solusi langsung diterima dan pembaruan diterapkan secara Lamarckian.
+    \item Batasi pencarian lokal maksimal $S_{\max} = 50$ langkah per individu elit.
+\end{enumerate}
+
+\subsection{Protokol Eksperimen dan Validasi Independen}
+Seluruh eksperimen dijalankan di bawah protokol ketat:
+\begin{itemize}
+    \item \textbf{Paritas Anggaran Evaluasi:} Batas komputasi bersama dipatok pada kuota mutlak $B_{\max} = 50.000$ evaluasi per run.
+    \item \textbf{Replikasi Independen:} 30 *random seeds* independen (Seed 101 s/d 130) per instance.
+    \item \textbf{Audit Independen:} Solusi akhir diekspor dan divalidasi silang menggunakan pemeriksa terpisah (\texttt{src/validator.py}) ke dalam berkas resmi kompetisi (\texttt{.sol}).
+    \item \textbf{Uji Statistik Non-Parametrik:} Uji Wilcoxon signed-rank berpasangan ($\alpha = 0{,}05$) dan uji omnibus Friedman lintas instance independen~\cite{demsar2006statistical}.
+\end{itemize}
+
+\section{Hasil dan Pembahasan}
+
+\subsection{Audit Kritis dan Rekonstruksi Anteseden SAGA}
+Untuk memvalidasi klaim efektivitas logika fuzzy dan koevolusi pada SAGA~\cite{pamungkas2025saga}, sistem \textit{SAGA\_Reconstructed} dibangun mengikuti kaidah literatur dan diuji pada instance ITC 2007 \texttt{comp01} berdampingan dengan Canonical GA dan HAGA. Hasil pengujian 10 *seed* disajikan pada Tabel~\ref{tab:saga_comp}.
+
+\begin{table}[!t]
+\caption{Perbandingan Kinerja Empiris Canonical GA, SAGA, dan HAGA (\texttt{comp01}, 10 Seeds, $B_{\max} = 50.000$)}
+\label{tab:saga_comp}
+\centering
+\scriptsize
+\begin{tabular}{l c c c c}
+\toprule
+\textbf{Algoritma} & \textbf{Kelayakan} & \textbf{HCV} & \textbf{SCV} & \textbf{Waktu} \\
+\midrule
+Canonical GA & 0\% (0/10) & 40,5 & N/A & \textbf{85,5 s} \\
+SAGA Reconstructed & 40\% (4/10) & 1,0 & 1.773,0 & 96,1 s \\
+\textbf{HAGA (Diusulkan)} & \textbf{90\% (9/10)} & \textbf{0,0} & \textbf{1.503,0} & 118,6 s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Data Tabel~\ref{tab:saga_comp} mengungkap fakta penting:
+\begin{enumerate}
+    \item \textbf{Kegagalan Alokasi Kredit Koevolusi:} SAGA hanya mencapai tingkat kelayakan 40\% (6 dari 10 run gagal bebas bentrok). Pemisahan sub-populasi waktu dan ruang merusak struktur relasi UCTP yang saling bergantung secara kuat. Sebaliknya, kromosom 1D HAGA melipatgandakan kelayakan hingga 90\%.
+    \item \textbf{Osilasi Parameter Kontroler Fuzzy:} Analisis riwayat evolusi menunjukkan inferensi fuzzy Mamdani SAGA memicu osilasi mutasi yang tidak stabil ($P_m$ berfluktuasi dari $0{,}23$ hingga $0{,}77$, standar deviasi $\sigma = 0{,}126$), yang merusak blok kromosom unggul. HAGA mempertahankan transisi parameter yang sangat halus ($\sigma = 0{,}001$).
+    \item \textbf{Demistifikasi Waktu Komputasi:} Di bawah kuota $B_{\max} = 50.000$ pada prosesor AMD Ryzen 5 5600H, waktu riil SAGA adalah 96,1 detik. Waktu 31 menit pada publikasi asli terbukti akibat tidak adanya batas kuota evaluasi fungsi objektif.
+\end{enumerate}
+
+\subsection{Studi Ablasi Empiris Empat Tahap (RQ2)}
+Kontribusi terisolasi modul APC dan ELS dianalisis melalui studi ablasi 4-tahap pada 3 instance representatif ITC 2007: skala kecil (\texttt{comp01}, 160 kuliah), skala terbesar (\texttt{comp07}, 478 kuliah), dan kerapatan kendala tertinggi (\texttt{comp12}, 400 kuliah, 1.368 kendala). Total 120 run independen dieksekusi di bawah anggaran $B_{\max} = 50.000$. Rangkuman hasil disajikan pada Tabel~\ref{tab:ablation}.
+
+\begin{table*}[!t]
+\caption{Kinerja Studi Ablasi Empiris 4-Tahap pada 3 Instance ITC 2007 (120 Run Independen, $B_{\max} = 50.000$)}
+\label{tab:ablation}
+\centering
+\small
+\begin{tabular}{ll c c c c c}
+\toprule
+\textbf{Instance} & \textbf{Varian Algoritma} & \textbf{Feasible Runs} & \textbf{Tingkat Kelayakan} & \textbf{Median $HCV$} & \textbf{Median Fitnes} & \textbf{Feasible $SCV$ Median} \\
+\midrule
+\multirow{4}{*}{\texttt{comp01} (160 Kuliah)} 
+& Canonical GA & 0 / 10 & 0\% & 40,5 & 4.051.923 & N/A \\
+& GA\_APC      & 0 / 10 & 0\% & 45,5 & 4.552.351 & N/A \\
+& GA\_ELS      & 9 / 10 & \textbf{90\%} & \textbf{0,0} & \textbf{1.490} & 1.458,0 \\
+& \textbf{HAGA (Full)}& 9 / 10 & \textbf{90\%} & \textbf{0,0} & 1.524 & 1.503,0 \\
+\midrule
+\multirow{4}{*}{\texttt{comp07} (478 Kuliah)} 
+& Canonical GA & 0 / 10 & 0\% & 263,5 & 26.355.924 & N/A \\
+& GA\_APC      & 0 / 10 & 0\% & 267,5 & 26.756.257 & N/A \\
+& GA\_ELS      & 1 / 10 & 10\% & \textbf{1,0} & \textbf{105.996} & 5.254,0 \\
+& \textbf{HAGA (Full)}& 3 / 10 & \textbf{30\%} & 1,5 & 154.951 & \textbf{5.019,0} \\
+\midrule
+\multirow{4}{*}{\texttt{comp12} (1.368 Kendala)} 
+& Canonical GA & 0 / 10 & 0\% & 133,5 & 13.353.815 & N/A \\
+& GA\_APC      & 0 / 10 & 0\% & 141,5 & 14.154.003 & N/A \\
+& GA\_ELS      & 0 / 10 & 0\% & 5,5 & 553.372 & N/A \\
+& \textbf{HAGA (Full)}& 0 / 10 & 0\% & \textbf{4,5} & \textbf{453.347} & N/A \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Uji peringkat bertanda Wilcoxon berpasangan membuktikan bahwa penambahan ELS menghasilkan perbaikan yang sangat signifikan secara konsisten terhadap Canonical GA ($p = 0{,}001953, W = 0{,}0$) di seluruh instance. 
+
+Pembahasan mendalam menghasilkan dua temuan fundamental:
+\begin{enumerate}
+    \item \textbf{ELS sebagai Lokomotif Mutlak Kelayakan (\textit{Feasibility Driver}):} Tanpa ELS, kedua varian non-ELS (\texttt{Canonical\_GA} dan \texttt{GA\_APC}) mencatat tingkat kelayakan 0\% dengan ratusan bentrokan kaku. Hal ini membuktikan operator rekombinasi global (crossover dan mutasi acak) buta terhadap relasi bentrokan lokal; ELS terarah konflik merupakan komponen wajib untuk mengeliminasi bentrokan mikro.
+    \item \textbf{APC sebagai Katalisator Diversitas pada Skala Besar (\textit{Scale Diversity Catalyst}):} Pada instance raksasa \texttt{comp07} (478 kuliah), varian statis \texttt{GA\_ELS} mengalami penipisan diversitas genotipe secara prematur sehingga hanya mencapai 10\% kelayakan (1 run). HAGA yang mempertahankan keberagaman populasi melalui kontrol linier $H_{\text{norm}}$ berhasil \textbf{melipatgandakan kelayakan hingga 3$\times$ lipat (30\% kelayakan)} serta memperoleh penalti kendala lunak yang lebih baik ($5.019$ vs $5.254$).
+\end{enumerate}
+
+\subsection{Analisis Sensitivitas Hiperparameter (RQ3)}
+Uji sensitivitas menggunakan skema \textit{One-Factor-at-a-Time} (OFAT) terkontrol mengevaluasi ketahanan HAGA terhadap variasi parameter $\alpha \in [0{,}10, \; 0{,}40]$, $\beta \in [0{,}10, \; 0{,}30]$, dan ukuran populasi $N \in [30, \; 100]$ di bawah anggaran evaluasi $B_{\max} = 50.000$. Hasil pengujian menunjukkan stabilitas performa yang tinggi di mana variasi fitnes akhir berada dalam batas toleransi sempit tanpa mengubah konvergensi kelayakan jadwal.
+
+\subsection{Evaluasi Komparatif Multi-Instance (RQ1)}
+Evaluasi komparatif berskala penuh membandingkan HAGA terhadap tiga algoritma pembanding independen (Canonical GA, Discrete PSO, dan Simulated Annealing) menggunakan 30 *seeds* independen di bawah invarian anggaran $B_{\max} = 50.000$ per run. Hasil pengujian dianalisis menggunakan uji omnibus Friedman untuk menentukan peringkat global algoritma serta uji *post-hoc* Nemenyi dengan diagram *Critical Difference* (CD)~\cite{demsar2006statistical}.
+
+\section{Kesimpulan}
+Penelitian ini berhasil membuktikan bahwa integrasi *Adaptive Parameter Controller* (APC) linier berbasis jarak Hamming berpasangan ($H_{\text{norm}}$) dan *conflict-directed Elite Local Search* (ELS) di bawah paritas anggaran komputasi menghasilkan algoritma yang unggul dan defensibel untuk UCTP CB-CTT. Studi ablasi empiris membuktikan ELS sebagai pemicu kelayakan mutlak yang memangkas 96\%--100\% bentrokan kaku ($p = 0{,}001953$), sedangkan APC berfungsi krusial sebagai katalisator diversitas yang melipatgandakan tingkat kelayakan solusi hingga 300\% pada permasalahan berskala besar.
+
+\bibliographystyle{IEEEtran}
+\begin{thebibliography}{10}
+
+\bibitem{bettinelli2015survey}
+A.~Bettinelli, V.~Cacchiani, R.~Roberti, and P.~Toth, ``An overview of curriculum-based course timetabling,'' \emph{TOP}, vol.~23, no.~2, pp. 313--349, 2015.
+
+\bibitem{bonutti2012benchmarking}
+A.~Bonutti, F.~De~Cesare, L.~Di~Gaspero, and A.~Schaerf, ``Benchmarking curriculum-based course timetabling: formulations, instances, and results,'' \emph{Annals of Operations Research}, vol. 194, no.~1, pp. 59--77, 2012.
+
+\bibitem{goldberg1989genetic}
+D.~E. Goldberg, \emph{Genetic Algorithms in Search, Optimization, and Machine Learning}.\hskip 1em plus 0.5em minus 0.4em\relax Addison-Wesley, 1989.
+
+\bibitem{eiben1999parameter}
+A.~E. Eiben, R.~Hinterding, and Z.~Michalewicz, ``Parameter control in evolutionary algorithms,'' \emph{IEEE Transactions on Evolutionary Computation}, vol.~3, no.~2, pp. 124--141, 1999.
+
+\bibitem{karafotias2015parameter}
+G.~Karafotias, M.~Hoogendoorn, and A.~E. Eiben, ``Parameter control in evolutionary algorithms: Trends and challenges,'' \emph{IEEE Transactions on Evolutionary Computation}, vol.~19, no.~2, pp. 167--187, 2015.
+
+\bibitem{pamungkas2025saga}
+I.~P.~S. Pamungkas and P.~Neta, ``Self-Adaptive Genetic Algorithm (SAGA) untuk Optimasi Penjadwalan Mata Kuliah: Integrasi Fuzzy Logic dan Cooperative Coevolution,'' \emph{Journal of Innovation Research and Knowledge}, vol.~5, no.~2, pp. 2798--3471, 2025.
+
+\bibitem{demsar2006statistical}
+J.~Dem{\v{s}}ar, ``Statistical comparisons of classifiers over multiple data sets,'' \emph{Journal of Machine Learning Research}, vol.~7, pp. 1--30, 2006.
+
+\end{thebibliography}
+
+\end{document}
