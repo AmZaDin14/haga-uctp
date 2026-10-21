@@ -103,11 +103,11 @@ Data empiris pada Tabel 4.2 dan uji statistik menjawab RQ2 secara tuntas melalui
 
 Untuk menjawab **Research Question 1 (RQ1)**, evaluasi komparatif multi-instance berskala penuh dijalankan dengan membandingkan HAGA terhadap tiga algoritma pembanding independen (*Canonical GA*, *Discrete PSO*, dan *Simulated Annealing*) di bawah paritas anggaran evaluasi bersama $B_{\max} = 50.000$ evaluasi dan 30 *random seeds* independen per instance.
 
-### 4.3.1 Hasil Kinerja Komparatif pada 5 Instance Independen (600 Run)
+### 4.3.1 Hasil Kinerja Komparatif pada 7 Instance Independen (840 Run)
 
-Tabel 4.3 merangkum hasil pengujian komparatif pada 5 instance tolok ukur ITC 2007 (`comp01` s/d `comp05`) dengan total 600 run independen.
+Tabel 4.3 merangkum hasil pengujian komparatif pada 7 instance tolok ukur ITC 2007 (`comp01` s/d `comp07`) dengan total 840 run independen di bawah paritas anggaran $B_{\max} = 50.000$.
 
-**Tabel 4.3 Kinerja Komparatif 4 Algoritma pada 5 Instance ITC 2007 (600 Run, 30 Seeds per Konfigurasi, $B_{\max} = 50.000$)**
+**Tabel 4.3 Kinerja Komparatif 4 Algoritma pada 7 Instance ITC 2007 (840 Run, 30 Seeds per Konfigurasi, $B_{\max} = 50.000$)**
 
 | Instance Benchmark | Algoritma | Feasible Runs ($HCV=0$) | Tingkat Kelayakan | Median $HCV$ (Bentrokan) | Nilai Fitnes Median | Median Runtime |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -131,13 +131,21 @@ Tabel 4.3 merangkum hasil pengujian komparatif pada 5 instance tolok ukur ITC 20
 | | **Discrete PSO** | 0 / 30 | 0,0% | 132,0 | 13.209.003,5 | 556,0 s |
 | | **Simulated Annealing** | 0 / 30 | 0,0% | **3,5** | **351.722,5** | **543,9 s** |
 | | **HAGA (Diusulkan)** | 0 / 30 | 0,0% | 7,0 | 706.591,0 | 829,7 s |
+| **`comp06`** (361 Kuliah, 632 Kendala) | **Canonical GA** | 0 / 30 | 0,0% | 196,0 | 19.606.903,0 | 593,8 s |
+| | **Discrete PSO** | 0 / 30 | 0,0% | 263,0 | 26.306.459,5 | 599,6 s |
+| | **Simulated Annealing** | **19 / 30** | **63,3%** | **0,0** | **1.608,5** | **577,2 s** |
+| | **HAGA (Diusulkan)** | **8 / 30** | **26,7%** | 1,0 | 105.906,5 | 914,4 s |
+| **`comp07`** (434 Kuliah, Instance Terbesar) | **Canonical GA** | 0 / 30 | 0,0% | 260,0 | 26.006.322,0 | 772,4 s |
+| | **Discrete PSO** | 0 / 30 | 0,0% | 329,0 | 32.906.501,5 | 776,8 s |
+| | **Simulated Annealing** | **11 / 30** | **36,7%** | **1,0** | **101.783,0** | **749,1 s** |
+| | **HAGA (Diusulkan)** | **6 / 30** | **20,0%** | **1,0** | 105.387,0 | 1.191,8 s |
 
-### 4.3.2 Uji Peringkat Omnibus Friedman dan Analisis Post-Hoc Nemenyi
+### 4.3.2 Uji Peringkat Omnibus Friedman dan Analisis Post-Hoc Nemenyi (7 Instance)
 
-Mengikuti protokol pengujian statistik komparatif multi-dataset Demšar (2006), unit statistik yang digunakan adalah nilai median fitnes per instance independen untuk mengeliminasi pseudoreplikasi seed.
+Mengikuti protokol pengujian statistik komparatif multi-dataset Demšar (2006), unit statistik yang digunakan adalah nilai median fitnes per instance independen untuk mengeliminasi bias pseudoreplikasi seed.
 
-Hasil uji Omnibus Friedman menunjukkan perbedaan performa yang **sangat signifikan secara statistik** melintasi kelima instance uji:
-$$\chi^2_F = 15{,}0000, \quad df = 3, \quad p = 0{,}001817 \; (p < 0{,}01)$$
+Hasil uji Omnibus Friedman menunjukkan perbedaan performa yang **sangat signifikan secara statistik** melintasi ketujuh instance uji:
+$$\chi^2_F = 21{,}0000, \quad df = 3, \quad p = 0{,}000105 \; (p < 0{,}001)$$
 
 Rerata peringkat (*mean ranks*, semakin kecil semakin baik) adalah:
 1. **Simulated Annealing:** Peringkat $1{,}00$
@@ -145,14 +153,31 @@ Rerata peringkat (*mean ranks*, semakin kecil semakin baik) adalah:
 3. **Canonical GA:** Peringkat $3{,}00$
 4. **Discrete PSO:** Peringkat $4{,}00$
 
-Pada tingkat signifikansi $\alpha = 0{,}05$, nilai *Critical Difference* (CD) Nemenyi adalah $CD = 2{,}0976$. HAGA secara konsisten mengungguli Canonical GA dan Discrete PSO di seluruh instance dengan selisih peringkat yang signifikan secara statistik terhadap Discrete PSO ($|\text{Rank}_{\text{HAGA}} - \text{Rank}_{\text{PSO}}| = 2{,}00$).
+Pada tingkat signifikansi $\alpha = 0{,}05$ dengan $N=7$ instance dan $k=4$ algoritma, nilai *Critical Difference* (CD) Nemenyi adalah $CD = 1{,}7728$. Karena $|\text{Rank}_{\text{HAGA}} - \text{Rank}_{\text{PSO}}| = |2{,}00 - 4{,}00| = 2{,}00 > CD (1{,}7728)$, **HAGA terbukti secara statistik mengungguli Discrete PSO secara signifikan ($p < 0{,}05$) di bawah uji post-hoc Nemenyi**.
+
 ---
 
 ## 4.4 Analisis Sensitivitas Hiperparameter HAGA (Jawaban RQ3)
 
-Untuk membuktikan ketahanan (*robustness*) algoritma terhadap variasi parameter desain, pengujian sensitivitas dieksekusi menggunakan skema OFAT terikat pada instance `comp01.ctt` di bawah kuota $B_{\max} = 50.000$ evaluasi.
+Untuk menjawab **Research Question 3 (RQ3)** mengenai stabilitas model terhadap variasi parameter desain, pengujian sensitivitas dieksekusi menggunakan skema *One-Factor-at-a-Time* (OFAT) terkontrol pada instance `comp01.ctt` di bawah kuota $B_{\max} = 50.000$ evaluasi melintasi 10 *seeds* independen (total 70 run).
 
-*(Data sensitivitas $\alpha \in [0{,}10, 0{,}40]$, $\beta \in [0{,}10, 0{,}30]$, dan $N \in [30, 100]$ akan dimasukkan dari eksekusi `scripts/run_sensitivity.py`)*
+**Tabel 4.4 Analisis Sensitivitas Parameter HAGA pada `comp01` (7 Konfigurasi, 70 Run)**
+
+| Konfigurasi Parameter | Feasible Runs | Tingkat Kelayakan | Median $HCV$ | Median Fitnes | IQR Fitnes | Median Runtime |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Baseline** ($N=50, \alpha=0{,}25, \beta=0{,}20$) | 8 / 10 | 80,0% | **0,0** | 1.546,5 | 275,8 | 103,2 s |
+| **$\alpha = 0{,}10$** (Kemiringan Rendah) | **10 / 10** | **100,0%** | **0,0** | 1.501,0 | 185,3 | 104,5 s |
+| **$\alpha = 0{,}40$** (Kemiringan Tinggi) | 9 / 10 | 90,0% | **0,0** | 1.466,0 | 193,0 | 104,3 s |
+| **$\beta = 0{,}10$** (Kemiringan Rendah) | 9 / 10 | 90,0% | **0,0** | **1.417,0** | 166,8 | 105,3 s |
+| **$\beta = 0{,}30$** (Kemiringan Tinggi) | 8 / 10 | 80,0% | **0,0** | 1.476,0 | 183,3 | 106,8 s |
+| **$N = 30$** (Populasi Kecil) | 8 / 10 | 80,0% | **0,0** | 1.317,5 | 413,0 | 104,0 s |
+| **$N = 100$** (Populasi Besar) | 8 / 10 | 80,0% | **0,0** | 1.725,5 | 148,3 | **64,1 s** |
+
+### 4.4.1 Pembahasan Ketahanan Parameter (Robustness)
+Hasil empiris pada Tabel 4.4 membuktikan ketahanan HAGA yang sangat kokoh:
+1. **Stabilitas Kelayakan Mutlak ($HCV=0$):** Seluruh 7 konfigurasi parameter secara konsisten mencatatkan median $HCV = 0{,}0$ dengan tingkat kelayakan antara 80% hingga 100%. Tidak ada konfigurasi yang mengalami degradasi performa drastis (*no hyperparameter brittleness*).
+2. **Pengaruh Kemiringan $\alpha$ dan $\beta$:** Nilai kemiringan crossover ($\alpha$) dan mutasi ($\beta$) yang lebih rendah sedikit meningkatkan stabilitas kelayakan karena perubahan parameter berlangsung lebih gradual, sementara kemiringan tinggi mempercepat eksplorasi tanpa merusak konvergensi.
+3. **Efisiensi Skala Populasi ($N$):** Ukuran populasi besar ($N=100$) menyelesaikan run dalam waktu tercepat (64,1 detik) karena kuota $B_{\max} = 50.000$ tercapai dalam lebih sedikit generasi, meskipun populasi kecil ($N=30$) menghasilkan nilai fitnes median yang sedikit lebih tajam (1.317,5) berkat alokasi evaluasi yang lebih banyak untuk tahapan ELS per generasi.
 
 ---
 
