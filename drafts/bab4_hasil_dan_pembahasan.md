@@ -103,11 +103,11 @@ Data empiris pada Tabel 4.2 dan uji statistik menjawab RQ2 secara tuntas melalui
 
 Untuk menjawab **Research Question 1 (RQ1)**, evaluasi komparatif multi-instance berskala penuh dijalankan dengan membandingkan HAGA terhadap tiga algoritma pembanding independen (*Canonical GA*, *Discrete PSO*, dan *Simulated Annealing*) di bawah paritas anggaran evaluasi bersama $B_{\max} = 50.000$ evaluasi dan 30 *random seeds* independen per instance.
 
-### 4.3.1 Hasil Kinerja Komparatif pada 11 Instance Independen (1.320 Run)
+### 4.3.1 Hasil Kinerja Komparatif pada 15 Instance Independen (1.800 Run)
 
-Tabel 4.3 merangkum hasil pengujian komparatif pada 11 instance tolok ukur ITC 2007 (`comp01` s/d `comp09`, `comp11`, dan `comp15`) dengan total 1.320 run independen di bawah paritas anggaran $B_{\max} = 50.000$.
+Tabel 4.3 merangkum hasil pengujian komparatif pada 15 instance tolok ukur ITC 2007 (`comp01` s/d `comp09`, `comp11`, `comp13`, `comp14`, `comp15`, `comp18`, dan `comp19`) dengan total 1.800 run independen di bawah paritas anggaran $B_{\max} = 50.000$.
 
-**Tabel 4.3 Kinerja Komparatif 4 Algoritma pada 11 Instance ITC 2007 (1.320 Run, 30 Seeds per Konfigurasi, $B_{\max} = 50.000$)**
+**Tabel 4.3 Kinerja Komparatif 4 Algoritma pada 15 Instance ITC 2007 (1.800 Run, 30 Seeds per Konfigurasi, $B_{\max} = 50.000$)**
 
 | Instance Benchmark | Algoritma | Feasible Runs ($HCV=0$) | Tingkat Kelayakan | Median $HCV$ (Bentrokan) | Nilai Fitnes Median | Median Runtime |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -155,13 +155,29 @@ Tabel 4.3 merangkum hasil pengujian komparatif pada 11 instance tolok ukur ITC 2
 | | **Discrete PSO** | 0 / 30 | 0,0% | 171,0 | 17.106.235,0 | 410,9 s |
 | | **Simulated Annealing** | 9 / 30 | 30,0% | **1,0** | **100.505,5** | **396,9 s** |
 | | **HAGA (Diusulkan)** | 0 / 30 | 0,0% | 3,0 | 305.094,0 | 616,2 s |
+| **`comp13`** (308 Kuliah, 468 Kendala) | **Canonical GA** | 0 / 30 | 0,0% | 120,5 | 12.056.518,0 | 494,9 s |
+| | **Discrete PSO** | 0 / 30 | 0,0% | 174,5 | 17.456.584,0 | 503,0 s |
+| | **Simulated Annealing** | **29 / 30** | **96,7%** | **0,0** | **582,0** | **484,1 s** |
+| | **HAGA (Diusulkan)** | **22 / 30** | **73,3%** | **0,0** | 3.320,5 | 746,6 s |
+| **`comp14`** (275 Kuliah, 486 Kendala) | **Canonical GA** | 0 / 30 | 0,0% | 127,5 | 12.753.972,5 | 447,0 s |
+| | **Discrete PSO** | 0 / 30 | 0,0% | 182,5 | 18.254.051,0 | 456,4 s |
+| | **Simulated Annealing** | **29 / 30** | **96,7%** | **0,0** | **522,0** | **435,9 s** |
+| | **HAGA (Diusulkan)** | **5 / 30** | **16,7%** | 1,0 | 103.954,5 | 682,1 s |
+| **`comp18`** (138 Kuliah, 594 Kendala) | **Canonical GA** | 0 / 30 | 0,0% | 26,0 | 2.601.369,0 | 217,1 s |
+| | **Discrete PSO** | 0 / 30 | 0,0% | 54,0 | 5.401.811,5 | 220,2 s |
+| | **Simulated Annealing** | **30 / 30** | **100,0%** | **0,0** | **149,5** | **207,2 s** |
+| | **HAGA (Diusulkan)** | **30 / 30** | **100,0%** | **0,0** | 350,5 | 310,2 s |
+| **`comp19`** (277 Kuliah, 475 Kendala) | **Canonical GA** | 0 / 30 | 0,0% | 145,5 | 14.555.242,0 | 453,3 s |
+| | **Discrete PSO** | 0 / 30 | 0,0% | 205,5 | 20.555.012,0 | 462,7 s |
+| | **Simulated Annealing** | **16 / 30** | **53,3%** | **0,0** | **1.002,5** | **442,3 s** |
+| | **HAGA (Diusulkan)** | 0 / 30 | 0,0% | 4,0 | 404.966,0 | 682,7 s |
 
-### 4.3.2 Uji Peringkat Omnibus Friedman dan Analisis Post-Hoc Nemenyi (11 Instance)
+### 4.3.2 Uji Peringkat Omnibus Friedman dan Analisis Post-Hoc Nemenyi (15 Instance)
 
 Mengikuti protokol pengujian statistik komparatif multi-dataset Demšar (2006), unit statistik yang digunakan adalah nilai median fitnes per instance independen untuk mengeliminasi bias pseudoreplikasi seed.
 
-Hasil uji Omnibus Friedman menunjukkan perbedaan performa yang **sangat signifikan secara statistik** melintasi kesebelas instance uji:
-$$\chi^2_F = 33{,}0000, \quad df = 3, \quad p = 3{,}22 \times 10^{-7} \; (p < 0{,}00001)$$
+Hasil uji Omnibus Friedman menunjukkan perbedaan performa yang **sangat signifikan secara statistik** melintasi kelima belas instance uji:
+$$\chi^2_F = 45{,}0000, \quad df = 3, \quad p = 9{,}25 \times 10^{-10} \; (p < 10^{-9})$$
 
 Rerata peringkat (*mean ranks*, semakin kecil semakin baik) adalah:
 1. **Simulated Annealing:** Peringkat $1{,}00$
@@ -169,9 +185,9 @@ Rerata peringkat (*mean ranks*, semakin kecil semakin baik) adalah:
 3. **Canonical GA:** Peringkat $3{,}00$
 4. **Discrete PSO:** Peringkat $4{,}00$
 
-Pada tingkat signifikansi $\alpha = 0{,}05$ dengan $N=11$ instance dan $k=4$ algoritma, nilai *Critical Difference* (CD) Nemenyi adalah $CD = 1{,}4142$. Karena $|\text{Rank}_{\text{HAGA}} - \text{Rank}_{\text{PSO}}| = |2{,}00 - 4{,}00| = 2{,}00 > CD (1{,}4142)$, **HAGA terbukti secara statistik mengungguli Discrete PSO secara signifikan ($p < 0{,}05$) di bawah uji post-hoc Nemenyi**.
+Pada tingkat signifikansi $\alpha = 0{,}05$ dengan $N=15$ instance dan $k=4$ algoritma, nilai *Critical Difference* (CD) Nemenyi adalah $CD = 1{,}2110$. Karena $|\text{Rank}_{\text{HAGA}} - \text{Rank}_{\text{PSO}}| = |2{,}00 - 4{,}00| = 2{,}00 > CD (1{,}2110)$, **HAGA terbukti secara statistik mengungguli Discrete PSO secara signifikan ($p < 0{,}05$) di bawah uji post-hoc Nemenyi**.
 
-Selain itu, dalam hal kemampuan menghasilkan solusi layak (*feasibility rate*), Canonical GA dan Discrete PSO mencatatkan **0% kelayakan (0 dari 330 run total)** di seluruh 11 instance. Sebaliknya, HAGA berhasil mencapai solusi layak pada berbagai tingkat kompleksitas kendala (100% pada `comp11`, 83,3% pada `comp01`, 60% pada `comp04`, 56,7% pada `comp08`, 26,7% pada `comp06`, dan 20% pada `comp07`).
+Selain itu, dalam hal kemampuan menghasilkan solusi layak (*feasibility rate*), Canonical GA dan Discrete PSO mencatatkan **0% kelayakan (0 dari 450 run total)** di seluruh 15 instance. Sebaliknya, HAGA berhasil mencapai solusi layak pada berbagai tingkat kompleksitas kendala (100% pada `comp11` dan `comp18`, 83,3% pada `comp01`, 73,3% pada `comp13`, 60% pada `comp04`, 56,7% pada `comp08`, 26,7% pada `comp06`, 20% pada `comp07`, 23,3% pada `comp09`, dan 16,7% pada `comp14`).
 
 ---
 

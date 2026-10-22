@@ -223,10 +223,10 @@ $N = 100$ (Large Population)               & 8 / 10 (80\%)  & \textbf{0.0} & 1,7
 }
 \end{table}
 \subsection{Multi-Instance Comparative Benchmark (RQ1)}
-A full multi-instance comparative benchmark evaluating HAGA against Canonical GA, Discrete PSO, and Simulated Annealing (SA) was conducted across 30 independent seeds per instance under strict evaluation budget parity ($B_{\max} = 50,000$). Table~\ref{tab:multi_instance} presents the comparative performance across 11 independent ITC 2007 benchmark instances (1,320 independent runs total).
+A full multi-instance comparative benchmark evaluating HAGA against Canonical GA, Discrete PSO, and Simulated Annealing (SA) was conducted across 30 independent seeds per instance under strict evaluation budget parity ($B_{\max} = 50,000$). Table~\ref{tab:multi_instance} presents the comparative performance across 15 independent ITC 2007 benchmark instances (1,800 independent runs total).
 
 \begin{table*}[!t]
-\caption{Comparative Performance Across 11 Independent ITC 2007 Instances (1,320 Runs Total, 30 Seeds per Configuration, $B_{\max} = 50,000$)}
+\caption{Comparative Performance Across 15 Independent ITC 2007 Instances (1,800 Runs Total, 30 Seeds per Configuration, $B_{\max} = 50,000$)}
 \label{tab:multi_instance}
 \centering
 \small
@@ -295,27 +295,50 @@ A full multi-instance comparative benchmark evaluating HAGA against Canonical GA
 & Simulated Annealing & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & \textbf{106.0} & \textbf{76.8 s} \\
 & \textbf{HAGA (Proposed)} & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & 540.0 & 114.2 s \\
 \midrule
+\multirow{4}{*}{\texttt{comp13} (308 Events, 468 Constraints)} 
+& Canonical GA        & 0 / 30 & 0.0\%  & 120.5 & 12,056,518.0 & 494.9 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 174.5 & 17,456,584.0 & 503.0 s \\
+& Simulated Annealing & \textbf{29 / 30} & \textbf{96.7\%} & \textbf{0.0} & \textbf{582.0} & \textbf{484.1 s} \\
+& \textbf{HAGA (Proposed)} & 22 / 30 & 73.3\% & \textbf{0.0} & 3,320.5 & 746.6 s \\
+\midrule
+\multirow{4}{*}{\texttt{comp14} (275 Events, 486 Constraints)} 
+& Canonical GA        & 0 / 30 & 0.0\%  & 127.5 & 12,753,972.5 & 447.0 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 182.5 & 18,254,051.0 & 456.4 s \\
+& Simulated Annealing & \textbf{29 / 30} & \textbf{96.7\%} & \textbf{0.0} & \textbf{522.0} & \textbf{435.9 s} \\
+& \textbf{HAGA (Proposed)} & 5 / 30 & 16.7\% & 1.0 & 103,954.5 & 682.1 s \\
+\midrule
 \multirow{4}{*}{\texttt{comp15} (251 Events, 382 Constraints)} 
 & Canonical GA        & 0 / 30 & 0.0\%  & 114.5 & 11,455,931.0 & 405.1 s \\
 & Discrete PSO        & 0 / 30 & 0.0\%  & 171.0 & 17,106,235.0 & 410.9 s \\
 & Simulated Annealing & 9 / 30 & 30.0\% & \textbf{1.0} & \textbf{100,505.5} & \textbf{396.9 s} \\
 & \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 3.0 & 305,094.0 & 616.2 s \\
+\midrule
+\multirow{4}{*}{\texttt{comp18} (138 Events, 594 Constraints)} 
+& Canonical GA        & 0 / 30 & 0.0\%  & 26.0 & 2,601,369.0 & 217.1 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 54.0 & 5,401,811.5 & 220.2 s \\
+& Simulated Annealing & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & \textbf{149.5} & \textbf{207.2 s} \\
+& \textbf{HAGA (Proposed)} & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & 350.5 & 310.2 s \\
+\midrule
+\multirow{4}{*}{\texttt{comp19} (277 Events, 475 Constraints)} 
+& Canonical GA        & 0 / 30 & 0.0\%  & 145.5 & 14,555,242.0 & 453.3 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 205.5 & 20,555,012.0 & 462.7 s \\
+& Simulated Annealing & \textbf{16 / 30} & \textbf{53.3\%} & \textbf{0.0} & \textbf{1,002.5} & \textbf{442.3 s} \\
+& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 4.0 & 404,966.0 & 682.7 s \\
 \bottomrule
 \end{tabular}%
 }
 \end{table*}
 
-Following the statistical testing framework formalized by Dem{\v{s}}ar~\cite{demsar2006statistical}, we applied the non-parametric Friedman omnibus test using the median fitness of each algorithm across the 11 independent benchmark instances ($N=11, k=4$). The test revealed a statistically significant difference among the algorithms ($\chi^2_F = 33.0000, p = 3.22 \times 10^{-7}, p < 0.0001$). 
+Following the statistical testing framework formalized by Dem{\v{s}}ar~\cite{demsar2006statistical}, we applied the non-parametric Friedman omnibus test using the median fitness of each algorithm across the 15 independent benchmark instances ($N=15, k=4$). The test revealed a statistically significant difference among the algorithms ($\chi^2_F = 45.0000, p = 9.25 \times 10^{-10}, p < 10^{-9}$). 
 
-The average ranks across all 11 instances were:
+The average ranks across all 15 instances were:
 \begin{itemize}
     \item \textbf{Simulated Annealing:} Rank $1.00$
     \item \textbf{HAGA (Proposed):} Rank $2.00$
     \item \textbf{Canonical GA:} Rank $3.00$
     \item \textbf{Discrete PSO:} Rank $4.00$
 \end{itemize}
-At significance level $\alpha = 0.05$ with $N=11$ instances and $k=4$ algorithms, the Nemenyi Critical Difference is $CD = 1.4142$. Because $|\text{Rank}_{\text{HAGA}} - \text{Rank}_{\text{PSO}}| = |2.00 - 4.00| = 2.00 > CD (1.4142)$, \textbf{HAGA demonstrates statistically significant superiority over Discrete PSO ($p < 0.05$) under the Nemenyi post-hoc test}. Furthermore, across all 11 instances, Canonical GA and Discrete PSO achieved 0\% feasibility (0 of 330 runs), whereas HAGA successfully achieved feasibility across multiple challenging instances, confirming its practical applicability.
-
+At significance level $\alpha = 0.05$ with $N=15$ instances and $k=4$ algorithms, the Nemenyi Critical Difference is $CD = 1.2110$. Because $|\text{Rank}_{\text{HAGA}} - \text{Rank}_{\text{PSO}}| = |2.00 - 4.00| = 2.00 > CD (1.2110)$, \textbf{HAGA demonstrates statistically significant superiority over Discrete PSO ($p < 0.05$) under the Nemenyi post-hoc test}. Furthermore, across all 15 instances, Canonical GA and Discrete PSO achieved 0\% feasibility (0 of 450 runs), whereas HAGA successfully achieved feasibility across multiple challenging instances, confirming its practical applicability.
 \section{Conclusion}
 \label{sec:conclusion}
 This study presented HAGA, an integrative hybrid adaptive genetic algorithm for Curriculum-Based Course Timetabling. By coupling normalized pairwise Hamming diversity control with conflict-directed elite local search under strict evaluation budget parity, HAGA provides a mathematically defensible optimization framework. Extensive empirical evaluations across ITC 2007 instances demonstrated that ELS serves as an essential feasibility driver, while APC prevents premature convergence on large instances, tripling feasibility rates. Furthermore, our independent reconstruction of SAGA proved that simpler, closed-form linear diversity control provides superior parameter stability and schedule quality over complex fuzzy coevolutionary schemes.
