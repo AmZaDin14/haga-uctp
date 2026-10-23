@@ -229,10 +229,10 @@ python -m unittest discover -s tests -v
 ## 👥 Authors & Affiliation
 
 * **Researcher:** Amri Reza Wahyudin (NPM: 25321019)  
-  *Email:* amrireza97@gmail.com
+  *Email:* amri\_reza\_wahyudin@teknokrat.ac.id / amrireza97@gmail.com
 * **Supervisor:** Dr. Rohmat Indra Borman, M.Kom.
 * **Institution:**  
-  Program Studi Magister Ilmu Komputer, Fakultas Teknik dan Ilmu Komputer,  
+  Faculty of Engineering and Computer Science,  
   Universitas Teknokrat Indonesia, Bandar Lampung, Indonesia.
 
 ---

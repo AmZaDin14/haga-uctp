@@ -1,7 +1,8 @@
 # Hibridisasi Algoritma Genetika Adaptif dan Pencarian Lokal Elit untuk Optimasi Penjadwalan Perkuliahan Berbasis Kurikulum
 
-**Penulis:** Amri Reza Wahyudin, dkk.  
-**Afiliasi:** Program Studi Magister Ilmu Komputer, Universitas Teknokrat Indonesia  
+**Penulis:** Amri Reza Wahyudin$^1$, Rohmat Indra Borman$^2$  
+**Afiliasi:** Fakultas Teknik dan Ilmu Komputer, Universitas Teknokrat Indonesia, Bandar Lampung 35142, Indonesia  
+**Korespondensi:** amri\_reza\_wahyudin@teknokrat.ac.id  
 **Target Publikasi:** Jurnal Nasional Terakreditasi SINTA 2 (*Jurnal RESTI* / *INFOTEL*)  
 
 ---
