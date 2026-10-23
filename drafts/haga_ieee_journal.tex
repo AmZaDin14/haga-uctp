@@ -119,7 +119,7 @@ To exploit promising search regions, ELS is applied generationally to the top $N
 \end{algorithm}
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.98\linewidth]{figures/theoretical_framework.png}
+\includegraphics[width=0.98\linewidth]{figures/theoretical_framework.pdf}
 \caption{2D Theoretical Framework of HAGA: Grand Theories (left), Research Gaps (top-center), Integrative HAGA Architecture (center), Empirical Validation Protocol (bottom-center), and Defensible Contributions (right).}
 \label{fig:framework}
 \end{figure}
@@ -338,9 +338,28 @@ The average ranks across all 15 instances were:
     \item \textbf{Discrete PSO:} Rank $4.00$
 \end{itemize}
 At significance level $\alpha = 0.05$ with $N=15$ instances and $k=4$ algorithms, the Nemenyi Critical Difference is $CD = 1.2110$. Because $|\text{Rank}_{\text{HAGA}} - \text{Rank}_{\text{PSO}}| = |2.00 - 4.00| = 2.00 > CD (1.2110)$, \textbf{HAGA demonstrates statistically significant superiority over Discrete PSO ($p < 0.05$) under the Nemenyi post-hoc test}. Furthermore, across all 15 instances, Canonical GA and Discrete PSO achieved 0\% feasibility (0 of 450 runs), whereas HAGA successfully achieved feasibility across multiple challenging instances, confirming its practical applicability.
+\section{Discussion and Threats to Validity}
+\label{sec:discussion}
+
+\subsection{Algorithmic Synergies and Theoretical Implications}
+The empirical findings across ITC 2007 instances delineate the symbiotic roles of the Adaptive Parameter Controller (APC) and Elite Local Search (ELS). Standalone genetic operators (\texttt{Canonical\_GA} and \texttt{GA\_APC}) achieved 0\% feasibility across all benchmark runs, leaving hundreds of unresolved clashes. Because crossover and mutation operate on 1D chromosome representations without explicit knowledge of conflict graphs, random perturbations inevitably disrupt valid assignments while attempting to resolve violations. Conflict-directed ELS resolves this limitation by restricting neighborhood exploration exclusively to the subset of conflicting events ($\mathcal{K}$), applying Lamarckian repair directly to elite chromosomes.
+
+Conversely, the ablation study on large-scale instances (\texttt{comp07}) proved that local search alone is insufficient. Static local search (\texttt{GA\_ELS}) suffered rapid diversity depletion, plateauing at a 10\% feasibility rate. By dynamically scaling crossover and mutation probabilities inversely with normalized pairwise Hamming diversity ($H_{\text{norm}}$), HAGA actively resists premature convergence, sustaining exploration and tripling the feasibility rate to 30\%.
+
+Furthermore, our independent reconstruction of SAGA~\cite{pamungkas2025saga} clarifies a critical design trade-off: complex Mamdani fuzzy inference systems with multiple inputs generate high-amplitude mutation oscillations ($\sigma_{P_m} = 0.126$), whereas closed-form linear clamping in HAGA provides monotonic, smooth parameter transitions at zero computational overhead.
+
+\subsection{Threats to Validity}
+To ensure scientific reproducibility and defensibility, potential threats to validity were systematically mitigated:
+\begin{itemize}
+    \item \textbf{Internal Validity (Evaluation Budget Parity):} Comparing metaheuristics based on wall-clock time or arbitrary generation limits introduces severe hardware and implementation bias. In this study, all algorithms strictly shared an identical global objective evaluation quota ($B_{\max} = 50,000$). Every candidate schedule evaluation within ELS was deducted from $B_{\max}$, ensuring fair computational parity.
+    \item \textbf{Construct Validity (Feasibility Dominance):} Aggregating hard ($HCV$) and soft ($SCV$) violations into a single scalar risks masking infeasible assignments behind low soft penalties. By imposing a scalar penalty weight of $W_{\text{hard}} = 100,000$, any schedule with $HCV \ge 1$ incurs $F(S) \ge 100,000$, ensuring strict Pareto dominance for valid schedules. Furthermore, $HCV$ and $SCV$ are decoupled in all reporting tables.
+    \item \textbf{Conclusion Validity (Statistical Protocol):} As cautioned by Dem{\v{s}}ar~\cite{demsar2006statistical}, pooling multiple random seeds across different instances as independent samples constitutes pseudoreplication. In our statistical protocol, the median fitness across 30 seeds per instance serves as the primary statistical unit, evaluated via non-parametric Friedman omnibus and Nemenyi post-hoc tests.
+    \item \textbf{External Validity (Benchmark Generality):} Rather than evaluating HAGA on customized internal institutional data, experiments were conducted on standardized ITC 2007 benchmark instances spanning small, medium, and massive constraint topologies (up to 478 events and 1,368 constraints).
+\end{itemize}
+
 \section{Conclusion}
 \label{sec:conclusion}
-This study presented HAGA, an integrative hybrid adaptive genetic algorithm for Curriculum-Based Course Timetabling. By coupling normalized pairwise Hamming diversity control with conflict-directed elite local search under strict evaluation budget parity, HAGA provides a mathematically defensible optimization framework. Extensive empirical evaluations across ITC 2007 instances demonstrated that ELS serves as an essential feasibility driver, while APC prevents premature convergence on large instances, tripling feasibility rates. Furthermore, our independent reconstruction of SAGA proved that simpler, closed-form linear diversity control provides superior parameter stability and schedule quality over complex fuzzy coevolutionary schemes.
+This study presented HAGA, an integrative hybrid adaptive genetic algorithm for Curriculum-Based Course Timetabling. By coupling normalized pairwise Hamming diversity control with conflict-directed elite local search under strict evaluation budget parity ($B_{\max} = 50,000$), HAGA resolves the exploration-exploitation dilemma in tightly constrained search spaces. Extensive empirical evaluations across ITC 2007 benchmark instances demonstrated that ELS serves as an indispensable feasibility driver, while APC acts as a scale diversity catalyst, tripling feasibility rates on massive problem instances. Furthermore, rigorous statistical testing confirmed that HAGA significantly outperforms Discrete PSO ($p < 0.05$) under the Nemenyi post-hoc test and decisively surpasses Canonical GA in feasibility attainment across all tested instances.
 
 \bibliographystyle{IEEEtran}
 \begin{thebibliography}{10}
