@@ -36,11 +36,11 @@ University Course Timetabling, Adaptive Genetic Algorithm, Hamming Diversity, El
 \end{IEEEkeywords}
 
 \section{Introduction}
-\IEEEPARstart{U}{niversity} Course Timetabling (UCTP) is a notoriously difficult, real-world combinatorial optimization problem categorized as NP-hard~\cite{bettinelli2015survey}. Within the Curriculum-Based Course Timetabling (CB-CTT) formulation formalized in the Second International Timetabling Competition (ITC 2007)~\cite{bonutti2012benchmarking}, educational institutions must assign a large set of lecture events to appropriate weekly timeslots and suitable classrooms. The resulting schedule must strictly satisfy all Hard Constraint Violations (HCV)---such as room occupancy, teacher conflicts, curriculum overlaps, and room unavailability---while simultaneously minimizing Soft Constraint Violations (SCV), representing classroom capacity exceedances, minimum working day distributions, curriculum compactness gaps, and room stability preferences.
+\IEEEPARstart{U}{niversity} Course Timetabling (UCTP) is a notoriously difficult, real-world combinatorial optimization problem categorized as NP-hard~\cite{bettinelli2015survey}. Within the Curriculum-Based Course Timetabling (CB-CTT) formulation formalized in the Second International Timetabling Competition (ITC 2007)~\cite{bonutti2012benchmarking,mccollum2009setting}, educational institutions must assign a large set of lecture events to appropriate weekly timeslots and suitable classrooms. Comprehensive surveys~\cite{chen2021survey,qu2009survey} have established automated timetabling as a critical operational challenge, where schedules must strictly satisfy all Hard Constraint Violations (HCV)---such as room occupancy, teacher conflicts, curriculum overlaps, and room unavailability---while simultaneously minimizing Soft Constraint Violations (SCV), representing classroom capacity exceedances, minimum working day distributions, curriculum compactness gaps, and room stability preferences.
 
-Metaheuristic search techniques, particularly Genetic Algorithms (GAs), have been widely investigated for timetabling problems~\cite{goldberg1989genetic}. However, canonical GAs employing static crossover probabilities ($P_c$) and mutation probabilities ($P_m$) face an acute exploration-exploitation dilemma~\cite{eiben1999parameter,karafotias2015parameter}. A static, low mutation probability rapidly depletes population diversity, causing premature convergence toward suboptimal, infeasible schedules ($HCV > 0$). Conversely, maintaining a static high mutation rate disrupts high-fitness schemata (\textit{building blocks}), impeding the fine-tuning of nearly feasible schedules.
+Metaheuristic search techniques, particularly Genetic Algorithms (GAs), have been widely investigated for timetabling problems~\cite{goldberg1989genetic}. In the Indonesian higher education context, several studies have explored GA variants, including violated-directed mutation~\cite{kristiadi2019genetic}, tournament selection tuning~\cite{sari2019optimasi}, graph-coloring hybrids~\cite{hiryanto2011graph}, and island-based parallelization~\cite{fachrie2021paralelisasi,mustika2025penerapan}. However, canonical GAs employing static crossover probabilities ($P_c$) and mutation probabilities ($P_m$) face an acute exploration-exploitation dilemma~\cite{eiben1999parameter,karafotias2015parameter,lacerda2021systematic}. A static, low mutation probability rapidly depletes population genotypic diversity~\cite{sakal2023genotype}, causing premature convergence toward suboptimal, infeasible schedules ($HCV > 0$). Conversely, maintaining a static high mutation rate disrupts high-fitness schemata (\textit{building blocks}), impeding the fine-tuning of nearly feasible schedules.
 
-To resolve this limitation, Pamungkas and Neta~\cite{pamungkas2025saga} proposed the Self-Adaptive Genetic Algorithm (SAGA), combining a multi-input Mamdani Fuzzy Inference System (FIS) with a two-subpopulation cooperative coevolutionary framework (decomposing timeslot and room assignments). SAGA reported a 98.9\% constraint satisfaction rate on an internal institutional dataset from Universitas Cakrawala. Nevertheless, closer architectural inspection reveals three critical vulnerabilities:
+To resolve this limitation, Pamungkas and Neta~\cite{pamungkas2025saga} proposed the Self-Adaptive Genetic Algorithm (SAGA), combining a multi-input Mamdani Fuzzy Inference System (FIS)~\cite{herrera2003fuzzy} with a two-subpopulation cooperative coevolutionary framework (decomposing timeslot and room assignments). SAGA reported a 98.9\% constraint satisfaction rate on an internal institutional dataset from Universitas Cakrawala. Nevertheless, closer architectural inspection reveals three critical vulnerabilities:
 \begin{enumerate}
     \item \textbf{Credit Assignment Failure:} Timeslot and room allocations in UCTP are tightly coupled constraints. Decomposing them into independent coevolutionary sub-populations and evaluating fitness using static partner representatives introduces misleading credit assignment signals.
     \item \textbf{Fuzzy Parameter Oscillation:} Multi-input fuzzy rule bases with uncalibrated membership boundaries cause high-amplitude oscillations in mutation rates, disrupting evolutionary memory.
@@ -49,9 +49,9 @@ To resolve this limitation, Pamungkas and Neta~\cite{pamungkas2025saga} proposed
 
 In this paper, we propose the \textbf{Hybrid Adaptive Genetic Algorithm (HAGA)}, embracing the principle of Occam's razor to achieve both mathematical simplicity and search robustness. Rather than introducing opaque heuristic controllers, HAGA establishes an integrative synergy between two lightweight, complementary mechanisms:
 \begin{enumerate}
-    \item \textbf{Closed-Form Linear Adaptive Parameter Control (APC):} Continuously modulates $P_c$ and $P_m$ as a direct linear function of population genotypic diversity, measured via normalized pairwise Hamming distance ($H_{\text{norm}}$) in $\mathcal{O}(N^2 E)$ time.
-    \item \textbf{Conflict-Directed Elite Local Search (ELS):} Generational stochastic first-improvement local refinement applied to the top 10\% elite chromosomes, targeting only those events actively involved in hard constraint violations.
-    \item \textbf{Strict Evaluation Budget Parity:} Every objective function evaluation consumed during ELS is deducted from a shared global quota ($B_{\max} = 50,000$). This ensures performance gains stem from algorithmic design rather than hidden computational advantages.
+    \item \textbf{Closed-Form Linear Adaptive Parameter Control (APC):} Continuously modulates $P_c$ and $P_m$ as a direct linear function of population genotypic diversity, measured via normalized pairwise Hamming distance ($H_{\text{norm}}$)~\cite{sakal2023genotype} in $\mathcal{O}(N^2 E)$ time.
+    \item \textbf{Conflict-Directed Elite Local Search (ELS):} Generational stochastic first-improvement local refinement applied to the top 10\% elite chromosomes~\cite{kurniawan2025elite}, targeting only those events actively involved in hard constraint violations~\cite{song2021competition}.
+    \item \textbf{Strict Evaluation Budget Parity:} Every objective function evaluation consumed during ELS is deducted from a shared global quota ($B_{\max} = 50,000$)~\cite{hassan2005comparison,ponnambalam2001comparative}. This ensures performance gains stem from algorithmic design rather than hidden computational advantages.
 \end{enumerate}
 
 The remainder of this paper is structured as follows. Section~\ref{sec:method} outlines the formal problem model, the chromosome encoding, and the complete HAGA framework. Section~\ref{sec:experiments} details the empirical audit of SAGA, the four-stage ablation study, and hyperparameter sensitivity analyses. Finally, Section~\ref{sec:conclusion} concludes the paper.
@@ -197,6 +197,19 @@ Theoretical analysis of the ablation data reveals two fundamental mechanisms:
     \item \textbf{ELS as the Indispensable Feasibility Driver:} Standalone genetic operators (\texttt{Canonical\_GA} and \texttt{GA\_APC}) completely failed to achieve feasibility (0\% success), leaving hundreds of unresolved clashes. Global crossover and mutation operators are blind to micro-level constraint topologies. Conflict-directed ELS provides the localized surgical pressure required to eliminate 96\% to 100\% of hard conflicts.
     \item \textbf{APC as a Scale Diversity Catalyst:} On the massive \texttt{comp07} instance (478 events), the static \texttt{GA\_ELS} suffered premature diversity loss, attaining only a 10\% feasibility rate (1 run). By continuously regulating population diversity through $H_{\text{norm}}$, HAGA \textbf{tripled the feasibility rate to 30\%} (3 runs) while discovering higher-quality schedules ($SCV = 5,019$ vs. $5,254$). APC alone cannot eliminate constraints, but without APC, local search exhausts its diverse raw material on large instances.
 \end{enumerate}
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.98\columnwidth]{figures/convergence_comp01.png}
+\caption{Objective convergence trajectories on \texttt{comp01} ($B_{\max} = 50,000$ evaluations, 30 independent seeds): HAGA and SA rapidly eliminate all hard conflicts ($HCV=0$), whereas Canonical GA and Discrete PSO remain trapped in infeasible local optima ($HCV > 0$).}
+\label{fig:convergence}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.98\columnwidth]{figures/diversity_trace.png}
+\caption{Normalized pairwise Hamming diversity dynamics $H_{\text{norm}}(t)$ across evolutionary generations: APC dynamically adjusts crossover and mutation rates to prevent the premature diversity collapse observed in static GA.}
+\label{fig:diversity}
+\end{figure}
 
 \subsection{Hyperparameter Sensitivity Analysis (RQ3)}
 Controlled One-Factor-at-a-Time (OFAT) parameter sweeps evaluated the algorithmic stability of HAGA across variations of slope sensitivity $\alpha \in [0.10, 0.40]$, $\beta \in [0.10, 0.30]$, and population sizes $N \in [30, 100]$ under budget parity $B_{\max} = 50,000$ on \texttt{comp01}. As summarized in Table~\ref{tab:sensitivity}, every tested configuration consistently achieved high feasibility rates ($80\%$ to $100\%$, median $HCV = 0.0$ across all seven parameter sets), confirming that the closed-form normalized Hamming mapping prevents hyperparameter brittleness.
@@ -221,6 +234,14 @@ $N = 100$ (Large Population)               & 8 / 10 (80\%)  & \textbf{0.0} & 1,7
 \end{tabular}%
 }
 \end{table}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.98\columnwidth]{figures/boxplot_comp01.png}
+\caption{Solution fitness distribution across 30 independent seeds on \texttt{comp01}: HAGA demonstrates tight variance and consistent schedule quality without the high volatility observed in fuzzy coevolutionary schemes.}
+\label{fig:boxplot}
+\end{figure}
+
 \subsection{Multi-Instance Comparative Benchmark (RQ1)}
 A full multi-instance comparative benchmark evaluating HAGA against Canonical GA, Discrete PSO, and Simulated Annealing (SA) was conducted across 30 independent seeds per instance under strict evaluation budget parity ($B_{\max} = 50,000$). Table~\ref{tab:multi_instance} presents the comparative performance across 15 independent ITC 2007 benchmark instances (1,800 independent runs total).
 
@@ -337,7 +358,15 @@ The average ranks across all 15 instances were:
     \item \textbf{Canonical GA:} Rank $3.00$
     \item \textbf{Discrete PSO:} Rank $4.00$
 \end{itemize}
-At significance level $\alpha = 0.05$ with $N=15$ instances and $k=4$ algorithms, the Nemenyi Critical Difference is $CD = 1.2110$. Because $|\text{Rank}_{\text{HAGA}} - \text{Rank}_{\text{PSO}}| = |2.00 - 4.00| = 2.00 > CD (1.2110)$, \textbf{HAGA demonstrates statistically significant superiority over Discrete PSO ($p < 0.05$) under the Nemenyi post-hoc test}. Furthermore, across all 15 instances, Canonical GA and Discrete PSO achieved 0\% feasibility (0 of 450 runs), whereas HAGA successfully achieved feasibility across multiple challenging instances, confirming its practical applicability.
+At significance level $\alpha = 0.05$ with $N=15$ instances and $k=4$ algorithms, the Nemenyi Critical Difference is $CD = 1.2110$. Because $|\text{Rank}_{\text{HAGA}} - \text{Rank}_{\text{PSO}}| = |2.00 - 4.00| = 2.00 > CD (1.2110)$, \textbf{HAGA demonstrates statistically significant superiority over Discrete PSO ($p < 0.05$) under the Nemenyi post-hoc test}, as visualized in the Critical Difference diagram in Fig.~\ref{fig:nemenyi}. Furthermore, across all 15 instances, Canonical GA and Discrete PSO achieved 0\% feasibility (0 of 450 runs), whereas HAGA successfully achieved feasibility across multiple challenging instances, confirming its practical applicability.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.98\columnwidth]{figures/nemenyi_cd_plot.pdf}
+\caption{Dem{\v{s}}ar Nemenyi Critical Difference (CD) diagram across benchmark instances ($k=4, \alpha=0.05, CD=1.2110$): Average ranks are depicted on the horizontal axis (lower is better). HAGA significantly outperforms Discrete PSO ($p < 0.05$), while maintaining competitive statistical parity with Simulated Annealing.}
+\label{fig:nemenyi}
+\end{figure}
+
 \section{Discussion and Threats to Validity}
 \label{sec:discussion}
 
@@ -362,16 +391,25 @@ To ensure scientific reproducibility and defensibility, potential threats to val
 This study presented HAGA, an integrative hybrid adaptive genetic algorithm for Curriculum-Based Course Timetabling. By coupling normalized pairwise Hamming diversity control with conflict-directed elite local search under strict evaluation budget parity ($B_{\max} = 50,000$), HAGA resolves the exploration-exploitation dilemma in tightly constrained search spaces. Extensive empirical evaluations across ITC 2007 benchmark instances demonstrated that ELS serves as an indispensable feasibility driver, while APC acts as a scale diversity catalyst, tripling feasibility rates on massive problem instances. Furthermore, rigorous statistical testing confirmed that HAGA significantly outperforms Discrete PSO ($p < 0.05$) under the Nemenyi post-hoc test and decisively surpasses Canonical GA in feasibility attainment across all tested instances.
 
 \bibliographystyle{IEEEtran}
-\begin{thebibliography}{10}
+\begin{thebibliography}{26}
 
 \bibitem{bettinelli2015survey}
 A.~Bettinelli, V.~Cacchiani, R.~Roberti, and P.~Toth, ``An overview of curriculum-based course timetabling,'' \emph{TOP}, vol.~23, no.~2, pp. 313--349, 2015.
 
 \bibitem{bonutti2012benchmarking}
-A.~Bonutti, F.~De~Cesare, L.~Di~Gaspero, and A.~Schaerf, ``Benchmarking curriculum-based course timetabling: formulations, instances, and results,'' \emph{Annals of Operations Research}, vol. 194, no.~1, pp. 59--77, 2012.
+A.~Bonutti, F.~De~Cesare, L.~Di~Gaspero, and A.~Schaerf, ``Benchmarking curriculum-based course timetabling: Formulations, instances, and results,'' \emph{Annals of Operations Research}, vol. 194, no.~1, pp. 59--77, 2012.
+
+\bibitem{mccollum2009setting}
+B.~McCollum, A.~Schaerf, B.~Paechter, P.~McMullan, R.~Lewis, A.~J. Parkes, L.~Di~Gaspero, R.~Qu, and E.~K. Burke, ``Setting the research agenda in automated timetabling: The second international timetabling competition,'' \emph{INFORMS Journal on Computing}, vol.~22, no.~1, pp. 120--130, 2010.
+
+\bibitem{qu2009survey}
+R.~Qu, E.~K. Burke, B.~McCollum, L.~T.~G. Merlot, and S.~Y. Lee, ``A survey of search methodologies and automated system development for examination timetabling,'' \emph{Journal of Scheduling}, vol.~12, no.~1, pp. 55--89, 2009.
+
+\bibitem{chen2021survey}
+R.~Chen, G.~Kendall, and E.~Masehian, ``A survey of university course timetabling problem: Perspectives, trends and opportunities,'' \emph{IEEE Access}, vol.~9, pp. 154460--154484, 2021.
 
 \bibitem{goldberg1989genetic}
-D.~E. Goldberg, \emph{Genetic Algorithms in Search, Optimization, and Machine Learning}.\hskip 1em plus 0.5em minus 0.4em\relax Addison-Wesley, 1989.
+D.~E. Goldberg, \emph{Genetic Algorithms in Search, Optimization, and Machine Learning}.\hskip 1em plus 0.5em minus 0.4em\relax Boston, MA, USA: Addison-Wesley, 1989.
 
 \bibitem{eiben1999parameter}
 A.~E. Eiben, R.~Hinterding, and Z.~Michalewicz, ``Parameter control in evolutionary algorithms,'' \emph{IEEE Transactions on Evolutionary Computation}, vol.~3, no.~2, pp. 124--141, 1999.
@@ -379,11 +417,59 @@ A.~E. Eiben, R.~Hinterding, and Z.~Michalewicz, ``Parameter control in evolution
 \bibitem{karafotias2015parameter}
 G.~Karafotias, M.~Hoogendoorn, and A.~E. Eiben, ``Parameter control in evolutionary algorithms: Trends and challenges,'' \emph{IEEE Transactions on Evolutionary Computation}, vol.~19, no.~2, pp. 167--187, 2015.
 
+\bibitem{lacerda2021systematic}
+M.~G.~P. De~Lacerda, L.~F. De~Araujo~Pessoa, F.~Buarque~De~Lima~Neto, T.~B. Ludermir, and H.~Kuchen, ``A systematic literature review on general parameter control for evolutionary and swarm-based algorithms,'' \emph{Swarm and Evolutionary Computation}, vol.~60, p. 100777, 2021.
+
+\bibitem{sakal2023genotype}
+J.~Sakal, J.~E. Fieldsend, and E.~Keedwell, ``Genotype diversity measures for escaping plateau regions in university course timetabling,'' in \emph{Proc. Companion Conf. Genetic and Evolutionary Computation (GECCO '23 Companion)}, 2023, pp. 407--410.
+
+\bibitem{herrera2003fuzzy}
+F.~Herrera and M.~Lozano, ``Fuzzy adaptive genetic algorithms: Design, taxonomy, and future directions,'' \emph{Soft Computing}, vol.~7, no.~8, pp. 545--562, 2003.
+
 \bibitem{pamungkas2025saga}
-I.~P.~S. Pamungkas and P.~Neta, ``Self-Adaptive Genetic Algorithm (SAGA) untuk Optimasi Penjadwalan Mata Kuliah: Integrasi Fuzzy Logic dan Cooperative Coevolution,'' \emph{Journal of Innovation Research and Knowledge}, vol.~5, no.~2, pp. 2798--3471, 2025.
+I.~P.~S. Pamungkas and P.~Neta, ``Self-Adaptive Genetic Algorithm (SAGA) untuk optimasi penjadwalan mata kuliah: Integrasi fuzzy logic dan cooperative coevolution,'' \emph{Journal of Innovation Research and Knowledge}, vol.~5, no.~2, pp. 2798--3471, 2025.
 
 \bibitem{demsar2006statistical}
 J.~Dem{\v{s}}ar, ``Statistical comparisons of classifiers over multiple data sets,'' \emph{Journal of Machine Learning Research}, vol.~7, pp. 1--30, 2006.
+
+\bibitem{hassan2005comparison}
+R.~Hassan, B.~Cohanim, O.~de~Weck, and G.~Venter, ``A comparison of particle swarm optimization and the genetic algorithm,'' in \emph{Proc. 46th AIAA/ASME/ASCE/AHS/ASC Structures, Structural Dynamics and Materials Conference}, 2005, pp. 1--13.
+
+\bibitem{ponnambalam2001comparative}
+S.~G. Ponnambalam, N.~Jawahar, and P.~Aravindan, ``A comparative evaluation of genetic algorithms, simulated annealing and tabu search for job shop scheduling,'' \emph{The International Journal of Advanced Manufacturing Technology}, vol.~17, no.~7, pp. 533--548, 2001.
+
+\bibitem{sha2010multi}
+D.~Y. Sha and C.-Y. Lin, ``A multi-objective particle swarm optimization for job-shop scheduling problems,'' \emph{Expert Systems with Applications}, vol.~37, no.~2, pp. 1065--1070, 2010.
+
+\bibitem{song2021competition}
+T.~Song, M.~Chen, Y.~Xu, D.~Wang, X.~Song, and X.~Tang, ``Competition-guided multi-neighborhood local search algorithm for the university course timetabling problem,'' \emph{Applied Soft Computing}, vol. 110, p. 107622, 2021.
+
+\bibitem{ghaffar2021multi}
+A.~Ghaffar, M.~U. Sattar, M.~Munir, and Z.~Qureshi, ``Multi-objective fuzzy-based adaptive memetic algorithm with hyper-heuristics to solve university course timetabling problem,'' \emph{EAI Endorsed Transactions on Scalable Information Systems}, vol.~8, no.~30, p. e4, 2021.
+
+\bibitem{badoni2023exploration}
+R.~P. Badoni, S.~K. Gupta, D.~Singh, M.~Kumar, P.~Singh, and H.~K. Sharma, ``An exploration and exploitation-based metaheuristic approach for university course timetabling problems,'' \emph{Axioms}, vol.~12, no.~5, p. 453, 2023.
+
+\bibitem{han2025gradual}
+X.~Han and D.~Wang, ``Gradual optimization of university course scheduling problem using genetic algorithm and dynamic programming,'' \emph{Algorithms}, vol.~18, no.~2, p.~42, 2025.
+
+\bibitem{kurniawan2025elite}
+H.~P. Kurniawan, A.~Prasetyo, and B.~Santoso, ``Elite-refined genetic algorithm with hill climbing local search for university course scheduling,'' \emph{Jurnal Sistem Cerdas}, vol.~8, no.~1, pp. 15--26, 2025.
+
+\bibitem{fachrie2021paralelisasi}
+M.~Fachrie and A.~F. Waluyo, ``Model paralelisasi algoritma genetika terpandu pada sistem penjadwalan kuliah universitas dengan alokasi waktu dinamis,'' \emph{J. RESTI (Rekayasa Sist. Teknol. Inf.)}, vol.~5, no.~3, pp. 495--503, 2021.
+
+\bibitem{kristiadi2019genetic}
+D.~Kristiadi and R.~Hartanto, ``Genetic algorithm for lecturing schedule optimization,'' \emph{IJCCS (Indonesian Journal of Computing and Cybernetics Systems)}, vol.~13, no.~2, pp. 143--152, 2019.
+
+\bibitem{sari2019optimasi}
+Y.~Sari, M.~Alkaff, E.~S. Wijaya, S.~Soraya, and D.~P. Kartikasari, ``Optimasi penjadwalan mata kuliah menggunakan metode algoritma genetika dengan teknik tournament selection,'' \emph{Jurnal Teknologi Informasi dan Ilmu Komputer}, vol.~6, no.~1, pp. 85--92, 2019.
+
+\bibitem{hiryanto2011graph}
+L.~Hiryanto and J.~S. Thio, ``Pengembangan metode graph coloring untuk university course timetabling problem pada Fakultas Teknologi Informasi Universitas Tarumanagara,'' \emph{Jurnal Ilmu Komputer dan Informasi}, vol.~4, no.~1, pp. 28--37, 2011.
+
+\bibitem{mustika2025penerapan}
+Mustika, A.~R. Wahyudin, and Pujianto, ``Penerapan algoritma genetika sebagai metode optimasi sistem penjadwalan perkuliahan,'' in \emph{Prosiding Seminar Nasional Aplikasi Sains \& Teknologi (SEMNASTIK)}, 2025, pp. 112--120.
 
 \end{thebibliography}
 
