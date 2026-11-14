@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "source": "results/batch*/analysis.json",
+  "runs": 2520,
+  "algorithms": [
+    "Canonical_GA",
+    "Discrete_PSO",
+    "Simulated_Annealing",
+    "HAGA"
+  ],
+  "full_suite": {
+    "instances": [
+      "comp01",
+      "comp02",
+      "comp03",
+      "comp04",
+      "comp05",
+      "comp06",
+      "comp07",
+      "comp08",
+      "comp09",
+      "comp10",
+      "comp11",
+      "comp12",
+      "comp13",
+      "comp14",
+      "comp15",
+      "comp16",
+      "comp17",
+      "comp18",
+      "comp19",
+      "comp20",
+      "comp21"
+    ],
+    "n_instances": 21,
+    "k_algorithms": 4,
+    "metric": "Median internal scalar best_fitness across 30 seeds (lower is better)",
+    "friedman": {
+      "statistic": 63.0,
+      "p_value": 1.3429833191224026e-13,
+      "significant": true
+    },
+    "mean_ranks": {
+      "Canonical_GA": 3.0,
+      "Discrete_PSO": 4.0,
+      "Simulated_Annealing": 1.0,
+      "HAGA": 2.0
+    },
+    "nemenyi_cd": 1.0235,
+    "per_instance_ranks": {
+      "comp01": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp02": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp03": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp04": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp05": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp06": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp07": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp08": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp09": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp10": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp11": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp12": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp13": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp14": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp15": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp16": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp17": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp18": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp19": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp20": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp21": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      }
+    }
+  },
+  "manuscript_subset_15": {
+    "instances": [
+      "comp01",
+      "comp02",
+      "comp03",
+      "comp04",
+      "comp05",
+      "comp06",
+      "comp07",
+      "comp08",
+      "comp09",
+      "comp11",
+      "comp13",
+      "comp14",
+      "comp15",
+      "comp18",
+      "comp19"
+    ],
+    "n_instances": 15,
+    "k_algorithms": 4,
+    "metric": "Median internal scalar best_fitness across 30 seeds (lower is better)",
+    "friedman": {
+      "statistic": 45.0,
+      "p_value": 9.252702104537306e-10,
+      "significant": true
+    },
+    "mean_ranks": {
+      "Canonical_GA": 3.0,
+      "Discrete_PSO": 4.0,
+      "Simulated_Annealing": 1.0,
+      "HAGA": 2.0
+    },
+    "nemenyi_cd": 1.211,
+    "per_instance_ranks": {
+      "comp01": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp02": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp03": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp04": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp05": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp06": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp07": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp08": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp09": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp11": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp13": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp14": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp15": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp18": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      },
+      "comp19": {
+        "Canonical_GA": 3.0,
+        "Discrete_PSO": 4.0,
+        "Simulated_Annealing": 1.0,
+        "HAGA": 2.0
+      }
+    }
+  }
+}
