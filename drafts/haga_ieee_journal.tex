@@ -119,7 +119,7 @@ To exploit promising search regions, ELS is applied generationally to the top $N
 \end{algorithm}
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.98\linewidth]{figures/theoretical_framework.pdf}
+\includegraphics[width=0.98\linewidth]{figures/theoretical_framework.png}
 \caption{2D Theoretical Framework of HAGA: Grand Theories (left), Research Gaps (top-center), Integrative HAGA Architecture (center), Empirical Validation Protocol (bottom-center), and Defensible Contributions (right).}
 \label{fig:framework}
 \end{figure}
@@ -243,10 +243,10 @@ $N = 100$ (Large Population)               & 8 / 10 (80\%)  & \textbf{0.0} & 1,7
 \end{figure}
 
 \subsection{Multi-Instance Comparative Benchmark (RQ1)}
-A full multi-instance comparative benchmark evaluating HAGA against Canonical GA, Discrete PSO, and Simulated Annealing (SA) was conducted across 30 independent seeds per instance under strict evaluation budget parity ($B_{\max} = 50,000$). Table~\ref{tab:multi_instance} presents the comparative performance across 15 independent ITC 2007 benchmark instances (1,800 independent runs total).
+A full multi-instance comparative benchmark evaluating HAGA against Canonical GA, Discrete PSO, and Simulated Annealing (SA) was conducted across 30 independent seeds per instance under strict evaluation budget parity ($B_{\max} = 50,000$). Table~\ref{tab:multi_instance} presents the comparative performance across 21 independent ITC 2007 benchmark instances (2,520 independent runs total).
 
 \begin{table*}[!t]
-\caption{Comparative Performance Across 15 Independent ITC 2007 Instances (1,800 Runs Total, 30 Seeds per Configuration, $B_{\max} = 50,000$)}
+\caption{Comparative Performance Across 21 Independent ITC 2007 Instances (2,520 Runs Total, 30 Seeds per Configuration, $B_{\max} = 50,000$)}
 \label{tab:multi_instance}
 \centering
 \small
@@ -309,11 +309,23 @@ A full multi-instance comparative benchmark evaluating HAGA against Canonical GA
 & Simulated Annealing & \textbf{25 / 30} & \textbf{83.3\%} & \textbf{0.0} & \textbf{438.0} & \textbf{439.8 s} \\
 & \textbf{HAGA (Proposed)} & 7 / 30 & 23.3\% & 1.0 & 104,672.5 & 684.5 s \\
 \midrule
+\multirow{4}{*}{\texttt{comp10} (370 Events, 694 Constraints)} 
+& Canonical GA        & 0 / 30 & 0.0\% & 216.0 & 21,606,088.0 & 676.5 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 280.0 & 28,005,700.5 & 690.0 s \\
+& Simulated Annealing & \textbf{13 / 30} & \textbf{43.3\%} & \textbf{1.0} & \textbf{101,095.0} & \textbf{664.4 s} \\
+& \textbf{HAGA (Proposed)} & 6 / 30 & 20.0\% & 2.0 & 204,744.0 & 1,051.3 s \\
+\midrule
 \multirow{4}{*}{\texttt{comp11} (162 Events, 94 Constraints)} 
 & Canonical GA        & 0 / 30 & 0.0\%  & 22.0 & 2,201,846.0 & 81.4 s \\
 & Discrete PSO        & 0 / 30 & 0.0\%  & 51.0 & 5,101,913.5 & 86.3 s \\
 & Simulated Annealing & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & \textbf{106.0} & \textbf{76.8 s} \\
 & \textbf{HAGA (Proposed)} & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & 540.0 & 114.2 s \\
+\midrule
+\multirow{4}{*}{\texttt{comp12} (218 Events, 1368 Constraints)} 
+& Canonical GA        & 0 / 30 & 0.0\% & 133.0 & 13,303,901.5 & 927.3 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 198.5 & 19,853,970.5 & 940.3 s \\
+& Simulated Annealing & \textbf{3 / 30} & \textbf{10.0\%} & \textbf{2.0} & \textbf{201,064.0} & \textbf{910.4 s} \\
+& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\% & 6.0 & 603,307.5 & 1,426.5 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp13} (308 Events, 468 Constraints)} 
 & Canonical GA        & 0 / 30 & 0.0\%  & 120.5 & 12,056,518.0 & 494.9 s \\
@@ -333,6 +345,18 @@ A full multi-instance comparative benchmark evaluating HAGA against Canonical GA
 & Simulated Annealing & 9 / 30 & 30.0\% & \textbf{1.0} & \textbf{100,505.5} & \textbf{396.9 s} \\
 & \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 3.0 & 305,094.0 & 616.2 s \\
 \midrule
+\multirow{4}{*}{\texttt{comp16} (366 Events, 518 Constraints)} 
+& Canonical GA        & 0 / 30 & 0.0\% & 181.0 & 18,105,446.0 & 682.5 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 246.5 & 24,655,963.0 & 697.5 s \\
+& Simulated Annealing & \textbf{14 / 30} & \textbf{46.7\%} & \textbf{1.0} & \textbf{100,840.5} & \textbf{667.9 s} \\
+& \textbf{HAGA (Proposed)} & 1 / 30 & 3.3\% & 2.0 & 205,434.0 & 1,056.6 s \\
+\midrule
+\multirow{4}{*}{\texttt{comp17} (339 Events, 548 Constraints)} 
+& Canonical GA        & 0 / 30 & 0.0\% & 177.0 & 17,705,861.0 & 619.5 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 239.5 & 23,955,627.5 & 633.0 s \\
+& Simulated Annealing & \textbf{19 / 30} & \textbf{63.3\%} & \textbf{0.0} & \textbf{1,034.0} & \textbf{607.6 s} \\
+& \textbf{HAGA (Proposed)} & 5 / 30 & 16.7\% & 1.0 & 105,392.0 & 958.2 s \\
+\midrule
 \multirow{4}{*}{\texttt{comp18} (138 Events, 594 Constraints)} 
 & Canonical GA        & 0 / 30 & 0.0\%  & 26.0 & 2,601,369.0 & 217.1 s \\
 & Discrete PSO        & 0 / 30 & 0.0\%  & 54.0 & 5,401,811.5 & 220.2 s \\
@@ -344,26 +368,37 @@ A full multi-instance comparative benchmark evaluating HAGA against Canonical GA
 & Discrete PSO        & 0 / 30 & 0.0\%  & 205.5 & 20,555,012.0 & 462.7 s \\
 & Simulated Annealing & \textbf{16 / 30} & \textbf{53.3\%} & \textbf{0.0} & \textbf{1,002.5} & \textbf{442.3 s} \\
 & \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 4.0 & 404,966.0 & 682.7 s \\
+\multirow{4}{*}{\texttt{comp20} (390 Events, 691 Constraints)} 
+& Canonical GA        & 0 / 30 & 0.0\% & 231.0 & 23,108,417.5 & 819.8 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 300.0 & 30,008,623.0 & 826.3 s \\
+& Simulated Annealing & \textbf{7 / 30} & \textbf{23.3\%} & \textbf{1.0} & \textbf{102,358.0} & \textbf{797.8 s} \\
+& \textbf{HAGA (Proposed)} & 2 / 30 & 6.7\% & 2.0 & 207,383.0 & 1,263.4 s \\
+\midrule
+\multirow{4}{*}{\texttt{comp21} (327 Events, 463 Constraints)} 
+& Canonical GA        & 0 / 30 & 0.0\% & 169.0 & 16,905,141.0 & 647.8 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 227.5 & 22,755,959.5 & 659.0 s \\
+& Simulated Annealing & \textbf{12 / 30} & \textbf{40.0\%} & \textbf{1.0} & \textbf{100,714.0} & \textbf{635.3 s} \\
+& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\% & 3.0 & 305,063.5 & 997.3 s \\
 \bottomrule
 \end{tabular}%
 }
 \end{table*}
 
-Following the statistical testing framework formalized by Dem{\v{s}}ar~\cite{demsar2006statistical}, we applied the non-parametric Friedman omnibus test using the median fitness of each algorithm across the 15 independent benchmark instances ($N=15, k=4$). The test revealed a statistically significant difference among the algorithms ($\chi^2_F = 45.0000, p = 9.25 \times 10^{-10}, p < 10^{-9}$). 
+Following the statistical testing framework formalized by Dem{\v{s}}ar~\cite{demsar2006statistical}, we applied the non-parametric Friedman omnibus test using the median fitness of each algorithm across the 21 independent benchmark instances ($N=21, k=4$). The test revealed a statistically significant difference among the algorithms ($\chi^2_F = 63.0000, p = 1.34 \times 10^{-13}, p < 10^{-12}$). 
 
-The average ranks across all 15 instances were:
+The average ranks across all 21 instances were:
 \begin{itemize}
     \item \textbf{Simulated Annealing:} Rank $1.00$
     \item \textbf{HAGA (Proposed):} Rank $2.00$
     \item \textbf{Canonical GA:} Rank $3.00$
     \item \textbf{Discrete PSO:} Rank $4.00$
 \end{itemize}
-At significance level $\alpha = 0.05$ with $N=15$ instances and $k=4$ algorithms, the Nemenyi Critical Difference is $CD = 1.2110$. Because $|\text{Rank}_{\text{HAGA}} - \text{Rank}_{\text{PSO}}| = |2.00 - 4.00| = 2.00 > CD (1.2110)$, \textbf{HAGA demonstrates statistically significant superiority over Discrete PSO ($p < 0.05$) under the Nemenyi post-hoc test}, as visualized in the Critical Difference diagram in Fig.~\ref{fig:nemenyi}. Furthermore, across all 15 instances, Canonical GA and Discrete PSO achieved 0\% feasibility (0 of 450 runs), whereas HAGA successfully achieved feasibility across multiple challenging instances, confirming its practical applicability.
+At significance level $\alpha = 0.05$ with $N=21$ instances and $k=4$ algorithms, the Nemenyi Critical Difference is $CD = 1.0235$. Because $|\text{Rank}_{\text{HAGA}} - \text{Rank}_{\text{PSO}}| = |2.00 - 4.00| = 2.00 > CD (1.0235)$, \textbf{HAGA demonstrates statistically significant superiority over Discrete PSO ($p < 0.05$) under the Nemenyi post-hoc test}, as visualized in the Critical Difference diagram in Fig.~\ref{fig:nemenyi}. Furthermore, across all 21 instances, Canonical GA and Discrete PSO achieved 0\% feasibility (0 of 630 runs), whereas HAGA successfully achieved feasibility across multiple challenging instances, confirming its practical applicability.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=0.98\columnwidth]{figures/nemenyi_cd_plot.pdf}
-\caption{Dem{\v{s}}ar Nemenyi Critical Difference (CD) diagram across benchmark instances ($k=4, \alpha=0.05, CD=1.2110$): Average ranks are depicted on the horizontal axis (lower is better). HAGA significantly outperforms Discrete PSO ($p < 0.05$), while maintaining competitive statistical parity with Simulated Annealing.}
+\caption{Dem{\v{s}}ar Nemenyi Critical Difference (CD) diagram across benchmark instances ($k=4, \alpha=0.05, CD=1.0235$): Average ranks are depicted on the horizontal axis (lower is better). HAGA significantly outperforms Discrete PSO ($p < 0.05$), while maintaining competitive statistical parity with Simulated Annealing.}
 \label{fig:nemenyi}
 \end{figure}
 
