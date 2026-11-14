@@ -137,7 +137,8 @@ def validate_solution(
                 curr_day_periods[day].add(period)
 
         for day_periods in curr_day_periods:
-            if len(day_periods) <= 1:
+            # A single lecture on a day has no neighbour and is isolated (+2).
+            if not day_periods:
                 continue
             for p in day_periods:
                 if (p - 1) not in day_periods and (p + 1) not in day_periods:
