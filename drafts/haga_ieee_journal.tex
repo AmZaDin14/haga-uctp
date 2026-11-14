@@ -28,7 +28,7 @@
 \maketitle
 
 \begin{abstract}
-The University Course Timetabling Problem (UCTP) is an NP-hard combinatorial optimization challenge characterized by tight multi-dimensional constraints. Canonical Genetic Algorithms (GAs) with static parameterizations frequently suffer from premature convergence toward infeasible local optima. Prior adaptive attempts, such as the Self-Adaptive Genetic Algorithm (SAGA), introduced cooperative coevolution and Mamdani fuzzy inference systems, but resulted in severe mutation rate oscillations and credit assignment dilemmas in coupled search spaces. In this paper, we propose the \textbf{Hybrid Adaptive Genetic Algorithm (HAGA)}, an integrative framework that couples a closed-form linear \textbf{Adaptive Parameter Controller (APC)} driven by normalized pairwise Hamming distance ($H_{\text{norm}}$) with a \textbf{conflict-directed Elite Local Search (ELS)}, under strict global evaluation budget parity ($B_{\max} = 50,000$). Empirical evaluations across benchmark instances from the international ITC 2007 Curriculum-Based Course Timetabling (CB-CTT) track demonstrate that: (1) ELS serves as an indispensable feasibility driver, eliminating 96\% to 100\% of hard constraint violations ($p = 0.001953$, Wilcoxon signed-rank test); (2) APC functions as an essential scale diversity catalyst, tripling the feasibility rate from 10\% to 30\% on the largest benchmark instance (\texttt{comp07}, 478 events) while achieving lower soft constraint penalties ($SCV = 5,019$ vs. $5,254$); and (3) an independent empirical audit reconstructing SAGA shows that HAGA improves solution feasibility from 40\% to 90\% while providing two orders of magnitude greater mutation rate stability.
+The University Course Timetabling Problem (UCTP) is an NP-hard combinatorial optimization challenge characterized by tight multi-dimensional constraints. Canonical Genetic Algorithms (GAs) with static parameterizations frequently suffer from premature convergence toward infeasible local optima. Prior adaptive attempts, such as the Self-Adaptive Genetic Algorithm (SAGA), introduced cooperative coevolution and Mamdani fuzzy inference systems, but resulted in severe mutation rate oscillations and credit assignment dilemmas in coupled search spaces. In this paper, we propose the \textbf{Hybrid Adaptive Genetic Algorithm (HAGA)}, an integrative framework that couples a closed-form linear \textbf{Adaptive Parameter Controller (APC)} driven by normalized pairwise Hamming distance ($H_{\text{norm}}$) with a \textbf{conflict-directed Elite Local Search (ELS)}, under strict global evaluation budget parity ($B_{\max} = 50,000$). Empirical evaluations across benchmark instances from the international ITC 2007 Curriculum-Based Course Timetabling (CB-CTT) track demonstrate that: (1) ELS serves as an indispensable feasibility driver, eliminating 96\% to 100\% of hard constraint violations ($p = 0.001953$, Wilcoxon signed-rank test); (2) APC functions as an essential scale diversity catalyst, tripling the feasibility rate from 10\% to 30\% on the largest benchmark instance (\texttt{comp07}, 434 events) while achieving lower soft constraint penalties ($SCV = 5,019$ vs. $5,254$); and (3) an independent empirical audit reconstructing SAGA shows that HAGA improves solution feasibility from 40\% to 90\% while providing two orders of magnitude greater mutation rate stability.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -157,7 +157,7 @@ The empirical audit reveals three decisive findings:
 \end{enumerate}
 
 \subsection{Four-Stage Empirical Ablation Study (RQ2)}
-To isolate the individual and synergistic contributions of APC and ELS, a four-stage ablation study was conducted across three representative ITC 2007 instances: small-scale (\texttt{comp01}, 160 events), largest-scale (\texttt{comp07}, 478 events), and densest-constrained (\texttt{comp12}, 400 events, 1,368 constraints). Across 10 seeds, 120 independent runs were executed under $B_{\max} = 50,000$. Table~\ref{tab:ablation} summarizes the results.
+To isolate the individual and synergistic contributions of APC and ELS, a four-stage ablation study was conducted across three representative ITC 2007 instances: small-scale (\texttt{comp01}, 160 events), largest-scale (\texttt{comp07}, 434 events), and densest-constrained (\texttt{comp12}, 218 events, 1,368 constraints). Across 10 seeds, 120 independent runs were executed under $B_{\max} = 50,000$. Table~\ref{tab:ablation} summarizes the results.
 
 \begin{table*}[!t]
 \caption{Four-Stage Empirical Ablation Study Results across Three ITC 2007 Instances (120 Independent Runs, $B_{\max} = 50,000$)}
@@ -174,7 +174,7 @@ To isolate the individual and synergistic contributions of APC and ELS, a four-s
 & GA\_ELS      & 9 / 10 & \textbf{90.0\%} & \textbf{0.0} & \textbf{1,490} & 1,458.0 \\
 & \textbf{HAGA (Full)}& 9 / 10 & \textbf{90.0\%} & \textbf{0.0} & 1,524 & 1,503.0 \\
 \midrule
-\multirow{4}{*}{\texttt{comp07} (478 Events)} 
+\multirow{4}{*}{\texttt{comp07} (434 Events)} 
 & Canonical GA & 0 / 10 & 0.0\% & 263.5 & 26,355,924 & N/A \\
 & GA\_APC      & 0 / 10 & 0.0\% & 267.5 & 26,756,257 & N/A \\
 & GA\_ELS      & 1 / 10 & 10.0\% & \textbf{1.0} & \textbf{105,996} & 5,254.0 \\
@@ -195,7 +195,7 @@ Paired Wilcoxon signed-rank tests confirmed that adding ELS yielded statisticall
 Theoretical analysis of the ablation data reveals two fundamental mechanisms:
 \begin{enumerate}
     \item \textbf{ELS as the Indispensable Feasibility Driver:} Standalone genetic operators (\texttt{Canonical\_GA} and \texttt{GA\_APC}) completely failed to achieve feasibility (0\% success), leaving hundreds of unresolved clashes. Global crossover and mutation operators are blind to micro-level constraint topologies. Conflict-directed ELS provides the localized surgical pressure required to eliminate 96\% to 100\% of hard conflicts.
-    \item \textbf{APC as a Scale Diversity Catalyst:} On the massive \texttt{comp07} instance (478 events), the static \texttt{GA\_ELS} suffered premature diversity loss, attaining only a 10\% feasibility rate (1 run). By continuously regulating population diversity through $H_{\text{norm}}$, HAGA \textbf{tripled the feasibility rate to 30\%} (3 runs) while discovering higher-quality schedules ($SCV = 5,019$ vs. $5,254$). APC alone cannot eliminate constraints, but without APC, local search exhausts its diverse raw material on large instances.
+    \item \textbf{APC as a Scale Diversity Catalyst:} On the massive \texttt{comp07} instance (434 events), the static \texttt{GA\_ELS} suffered premature diversity loss, attaining only a 10\% feasibility rate (1 run). By continuously regulating population diversity through $H_{\text{norm}}$, HAGA \textbf{tripled the feasibility rate to 30\%} (3 runs) while discovering higher-quality schedules ($SCV = 5,019$ vs. $5,254$). APC alone cannot eliminate constraints, but without APC, local search exhausts its diverse raw material on large instances.
 \end{enumerate}
 \begin{figure}[!t]
 \centering
@@ -256,133 +256,132 @@ A full multi-instance comparative benchmark evaluating HAGA against Canonical GA
 \textbf{Instance} & \textbf{Algorithm} & \textbf{Feasible Runs} & \textbf{Feasibility Rate} & \textbf{Median $HCV$} & \textbf{Median Fitness} & \textbf{Median Runtime} \\
 \midrule
 \multirow{4}{*}{\texttt{comp01} (160 Events)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 41.0 & 4,102,016.5 & \textbf{85.0 s} \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 73.0 & 7,302,462.5 & 91.1 s \\
-& Simulated Annealing & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & \textbf{198.0} & \textbf{78.4 s} \\
-& \textbf{HAGA (Proposed)} & 25 / 30 & 83.3\% & \textbf{0.0} & 1,551.5 & 119.9 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 41.0 & 4,102,034.5 & \textbf{85.0 s} \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 73.0 & 7,302,480.5 & 91.1 s \\
+& Simulated Annealing & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & \textbf{211.0} & \textbf{78.4 s} \\
+& \textbf{HAGA (Proposed)} & 25 / 30 & 83.3\% & \textbf{0.0} & 1,569.5 & 119.9 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp02} (283 Events)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 163.0 & 16,307,996.5 & 475.8 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 225.0 & 22,507,666.0 & 487.7 s \\
-& Simulated Annealing & 1 / 30 & 3.3\%  & \textbf{2.0} & \textbf{201,377.0} & \textbf{471.9 s} \\
-& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 5.0 & 506,505.5 & 728.9 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 163.0 & 16,308,128.5 & 475.8 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 225.0 & 22,507,801.0 & 487.7 s \\
+& Simulated Annealing & 1 / 30 & 3.3\%  & \textbf{2.0} & \textbf{201,498.0} & \textbf{471.9 s} \\
+& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 5.0 & 506,597.5 & 728.9 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp03} (251 Events)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 114.5 & 11,455,931.0 & 401.6 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 171.0 & 17,106,235.0 & 409.6 s \\
-& Simulated Annealing & 9 / 30 & 30.0\% & \textbf{1.0} & \textbf{100,505.5} & \textbf{393.2 s} \\
-& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 3.0 & 305,094.0 & 608.9 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 114.5 & 11,456,076.0 & 401.6 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 171.0 & 17,106,389.0 & 409.6 s \\
+& Simulated Annealing & 9 / 30 & 30.0\% & \textbf{1.0} & \textbf{100,669.5} & \textbf{393.2 s} \\
+& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 3.0 & 305,238.0 & 608.9 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp04} (286 Events)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 100.0 & 10,004,910.0 & 362.7 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 150.0 & 15,004,774.0 & 372.6 s \\
-& Simulated Annealing & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & \textbf{466.0} & \textbf{350.8 s} \\
-& \textbf{HAGA (Proposed)} & 18 / 30 & 60.0\% & \textbf{0.0} & 2,697.5 & 547.7 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 100.0 & 10,005,059.0 & 362.7 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 150.0 & 15,004,952.0 & 372.6 s \\
+& Simulated Annealing & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & \textbf{638.5} & \textbf{350.8 s} \\
+& \textbf{HAGA (Proposed)} & 18 / 30 & 60.0\% & \textbf{0.0} & 2,862.5 & 547.7 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp05} (152 Events, 771 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 72.5 & 7,258,809.5 & 554.0 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 132.0 & 13,209,003.5 & 556.0 s \\
-& Simulated Annealing & 0 / 30 & 0.0\%  & \textbf{3.5} & \textbf{351,722.5} & \textbf{543.9 s} \\
-& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 7.0 & 706,591.0 & 829.7 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 72.5 & 7,259,307.5 & 554.0 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 132.0 & 13,209,514.5 & 556.0 s \\
+& Simulated Annealing & 0 / 30 & 0.0\%  & \textbf{3.5} & \textbf{352,232.5} & \textbf{543.9 s} \\
+& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 7.0 & 707,079.0 & 829.7 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp06} (361 Events, 632 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 196.0 & 19,606,903.0 & 593.8 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 263.0 & 26,306,459.5 & 599.6 s \\
-& Simulated Annealing & \textbf{19 / 30} & \textbf{63.3\%} & \textbf{0.0} & \textbf{1,608.5} & \textbf{577.2 s} \\
-& \textbf{HAGA (Proposed)} & 8 / 30 & 26.7\% & 1.0 & 105,906.5 & 914.4 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 196.0 & 19,607,051.0 & 593.8 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 263.0 & 26,306,636.5 & 599.6 s \\
+& Simulated Annealing & \textbf{19 / 30} & \textbf{63.3\%} & \textbf{0.0} & \textbf{1,734.5} & \textbf{577.2 s} \\
+& \textbf{HAGA (Proposed)} & 8 / 30 & 26.7\% & 1.0 & 106,031.5 & 914.4 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp07} (434 Events, Largest Benchmark)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 260.0 & 26,006,322.0 & 772.4 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 329.0 & 32,906,501.5 & 776.8 s \\
-& Simulated Annealing & \textbf{11 / 30} & \textbf{36.7\%} & \textbf{1.0} & \textbf{101,783.0} & \textbf{749.1 s} \\
-& \textbf{HAGA (Proposed)} & 6 / 30 & 20.0\% & \textbf{1.0} & 105,387.0 & 1,191.8 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 260.0 & 26,006,475.0 & 772.4 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 329.0 & 32,906,676.5 & 776.8 s \\
+& Simulated Annealing & \textbf{11 / 30} & \textbf{36.7\%} & \textbf{1.0} & \textbf{101,917.0} & \textbf{749.1 s} \\
+& \textbf{HAGA (Proposed)} & 6 / 30 & 20.0\% & \textbf{1.0} & 105,509.0 & 1,191.8 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp08} (324 Events, 478 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 127.0 & 12,704,807.5 & 420.6 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 180.0 & 18,005,133.0 & 432.0 s \\
-& Simulated Annealing & \textbf{29 / 30} & \textbf{96.7\%} & \textbf{0.0} & \textbf{577.0} & \textbf{411.5 s} \\
-& \textbf{HAGA (Proposed)} & 17 / 30 & 56.7\% & \textbf{0.0} & 3,119.5 & 645.0 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 127.0 & 12,704,961.5 & 420.6 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 180.0 & 18,005,313.0 & 432.0 s \\
+& Simulated Annealing & \textbf{29 / 30} & \textbf{96.7\%} & \textbf{0.0} & \textbf{777.5} & \textbf{411.5 s} \\
+& \textbf{HAGA (Proposed)} & 17 / 30 & 56.7\% & \textbf{0.0} & 3,302.5 & 645.0 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp09} (279 Events, 405 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 116.0 & 11,604,978.5 & 454.9 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 175.0 & 17,504,199.5 & 456.6 s \\
-& Simulated Annealing & \textbf{25 / 30} & \textbf{83.3\%} & \textbf{0.0} & \textbf{438.0} & \textbf{439.8 s} \\
-& \textbf{HAGA (Proposed)} & 7 / 30 & 23.3\% & 1.0 & 104,672.5 & 684.5 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 116.0 & 11,605,184.5 & 454.9 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 175.0 & 17,504,386.5 & 456.6 s \\
+& Simulated Annealing & \textbf{25 / 30} & \textbf{83.3\%} & \textbf{0.0} & \textbf{660.5} & \textbf{439.8 s} \\
+& \textbf{HAGA (Proposed)} & 7 / 30 & 23.3\% & 1.0 & 104,839.5 & 684.5 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp10} (370 Events, 694 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\% & 216.0 & 21,606,088.0 & 676.5 s \\
-& Discrete PSO        & 0 / 30 & 0.0\% & 280.0 & 28,005,700.5 & 690.0 s \\
-& Simulated Annealing & \textbf{13 / 30} & \textbf{43.3\%} & \textbf{1.0} & \textbf{101,095.0} & \textbf{664.4 s} \\
-& \textbf{HAGA (Proposed)} & 6 / 30 & 20.0\% & 2.0 & 204,744.0 & 1,051.3 s \\
+& Canonical GA        & 0 / 30 & 0.0\% & 216.0 & 21,606,212.0 & 676.5 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 280.0 & 28,005,850.5 & 690.0 s \\
+& Simulated Annealing & \textbf{13 / 30} & \textbf{43.3\%} & \textbf{1.0} & \textbf{101,237.0} & \textbf{664.4 s} \\
+& \textbf{HAGA (Proposed)} & 6 / 30 & 20.0\% & 2.0 & 204,867.0 & 1,051.3 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp11} (162 Events, 94 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 22.0 & 2,201,846.0 & 81.4 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 51.0 & 5,101,913.5 & 86.3 s \\
-& Simulated Annealing & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & \textbf{106.0} & \textbf{76.8 s} \\
-& \textbf{HAGA (Proposed)} & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & 540.0 & 114.2 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 22.0 & 2,201,849.0 & 81.4 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 51.0 & 5,101,918.5 & 86.3 s \\
+& Simulated Annealing & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & \textbf{121.5} & \textbf{76.8 s} \\
+& \textbf{HAGA (Proposed)} & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & 553.5 & 114.2 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp12} (218 Events, 1368 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\% & 133.0 & 13,303,901.5 & 927.3 s \\
-& Discrete PSO        & 0 / 30 & 0.0\% & 198.5 & 19,853,970.5 & 940.3 s \\
-& Simulated Annealing & \textbf{3 / 30} & \textbf{10.0\%} & \textbf{2.0} & \textbf{201,064.0} & \textbf{910.4 s} \\
-& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\% & 6.0 & 603,307.5 & 1,426.5 s \\
+& Canonical GA        & 0 / 30 & 0.0\% & 133.0 & 13,304,491.5 & 927.3 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 198.5 & 19,854,568.5 & 940.3 s \\
+& Simulated Annealing & \textbf{3 / 30} & \textbf{10.0\%} & \textbf{2.0} & \textbf{201,667.0} & \textbf{910.4 s} \\
+& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\% & 6.0 & 603,825.5 & 1,426.5 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp13} (308 Events, 468 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 120.5 & 12,056,518.0 & 494.9 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 174.5 & 17,456,584.0 & 503.0 s \\
-& Simulated Annealing & \textbf{29 / 30} & \textbf{96.7\%} & \textbf{0.0} & \textbf{582.0} & \textbf{484.1 s} \\
-& \textbf{HAGA (Proposed)} & 22 / 30 & 73.3\% & \textbf{0.0} & 3,320.5 & 746.6 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 120.5 & 12,056,712.0 & 494.9 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 174.5 & 17,456,776.0 & 503.0 s \\
+& Simulated Annealing & \textbf{29 / 30} & \textbf{96.7\%} & \textbf{0.0} & \textbf{795.0} & \textbf{484.1 s} \\
+& \textbf{HAGA (Proposed)} & 22 / 30 & 73.3\% & \textbf{0.0} & 3,514.5 & 746.6 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp14} (275 Events, 486 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 127.5 & 12,753,972.5 & 447.0 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 182.5 & 18,254,051.0 & 456.4 s \\
-& Simulated Annealing & \textbf{29 / 30} & \textbf{96.7\%} & \textbf{0.0} & \textbf{522.0} & \textbf{435.9 s} \\
-& \textbf{HAGA (Proposed)} & 5 / 30 & 16.7\% & 1.0 & 103,954.5 & 682.1 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 127.5 & 12,754,101.5 & 447.0 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 182.5 & 18,254,203.0 & 456.4 s \\
+& Simulated Annealing & \textbf{29 / 30} & \textbf{96.7\%} & \textbf{0.0} & \textbf{672.0} & \textbf{435.9 s} \\
+& \textbf{HAGA (Proposed)} & 5 / 30 & 16.7\% & 1.0 & 104,089.0 & 682.1 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp15} (251 Events, 382 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 114.5 & 11,455,931.0 & 405.1 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 171.0 & 17,106,235.0 & 410.9 s \\
-& Simulated Annealing & 9 / 30 & 30.0\% & \textbf{1.0} & \textbf{100,505.5} & \textbf{396.9 s} \\
-& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 3.0 & 305,094.0 & 616.2 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 114.5 & 11,456,076.0 & 405.1 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 171.0 & 17,106,389.0 & 410.9 s \\
+& Simulated Annealing & 9 / 30 & 30.0\% & \textbf{1.0} & \textbf{100,669.5} & \textbf{396.9 s} \\
+& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 3.0 & 305,238.0 & 616.2 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp16} (366 Events, 518 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\% & 181.0 & 18,105,446.0 & 682.5 s \\
-& Discrete PSO        & 0 / 30 & 0.0\% & 246.5 & 24,655,963.0 & 697.5 s \\
-& Simulated Annealing & \textbf{14 / 30} & \textbf{46.7\%} & \textbf{1.0} & \textbf{100,840.5} & \textbf{667.9 s} \\
-& \textbf{HAGA (Proposed)} & 1 / 30 & 3.3\% & 2.0 & 205,434.0 & 1,056.6 s \\
+& Canonical GA        & 0 / 30 & 0.0\% & 181.0 & 18,105,595.0 & 682.5 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 246.5 & 24,656,127.0 & 697.5 s \\
+& Simulated Annealing & \textbf{14 / 30} & \textbf{46.7\%} & \textbf{1.0} & \textbf{100,998.5} & \textbf{667.9 s} \\
+& \textbf{HAGA (Proposed)} & 1 / 30 & 3.3\% & 2.0 & 205,572.0 & 1,056.6 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp17} (339 Events, 548 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\% & 177.0 & 17,705,861.0 & 619.5 s \\
-& Discrete PSO        & 0 / 30 & 0.0\% & 239.5 & 23,955,627.5 & 633.0 s \\
-& Simulated Annealing & \textbf{19 / 30} & \textbf{63.3\%} & \textbf{0.0} & \textbf{1,034.0} & \textbf{607.6 s} \\
-& \textbf{HAGA (Proposed)} & 5 / 30 & 16.7\% & 1.0 & 105,392.0 & 958.2 s \\
+& Canonical GA        & 0 / 30 & 0.0\% & 177.0 & 17,705,993.0 & 619.5 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 239.5 & 23,955,800.5 & 633.0 s \\
+& Simulated Annealing & \textbf{19 / 30} & \textbf{63.3\%} & \textbf{0.0} & \textbf{1,201.0} & \textbf{607.6 s} \\
+& \textbf{HAGA (Proposed)} & 5 / 30 & 16.7\% & 1.0 & 105,538.0 & 958.2 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp18} (138 Events, 594 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 26.0 & 2,601,369.0 & 217.1 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 54.0 & 5,401,811.5 & 220.2 s \\
-& Simulated Annealing & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & \textbf{149.5} & \textbf{207.2 s} \\
-& \textbf{HAGA (Proposed)} & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & 350.5 & 310.2 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 26.0 & 2,601,596.0 & 217.1 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 54.0 & 5,402,028.5 & 220.2 s \\
+& Simulated Annealing & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & \textbf{409.5} & \textbf{207.2 s} \\
+& \textbf{HAGA (Proposed)} & \textbf{30 / 30} & \textbf{100.0\%} & \textbf{0.0} & 594.5 & 310.2 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp19} (277 Events, 475 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\%  & 145.5 & 14,555,242.0 & 453.3 s \\
-& Discrete PSO        & 0 / 30 & 0.0\%  & 205.5 & 20,555,012.0 & 462.7 s \\
-& Simulated Annealing & \textbf{16 / 30} & \textbf{53.3\%} & \textbf{0.0} & \textbf{1,002.5} & \textbf{442.3 s} \\
-& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 4.0 & 404,966.0 & 682.7 s \\
+& Canonical GA        & 0 / 30 & 0.0\%  & 145.5 & 14,555,376.0 & 453.3 s \\
+& Discrete PSO        & 0 / 30 & 0.0\%  & 205.5 & 20,555,172.0 & 462.7 s \\
+& Simulated Annealing & \textbf{16 / 30} & \textbf{53.3\%} & \textbf{0.0} & \textbf{1,156.5} & \textbf{442.3 s} \\
+& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\%  & 4.0 & 405,100.0 & 682.7 s \\
 \multirow{4}{*}{\texttt{comp20} (390 Events, 691 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\% & 231.0 & 23,108,417.5 & 819.8 s \\
-& Discrete PSO        & 0 / 30 & 0.0\% & 300.0 & 30,008,623.0 & 826.3 s \\
-& Simulated Annealing & \textbf{7 / 30} & \textbf{23.3\%} & \textbf{1.0} & \textbf{102,358.0} & \textbf{797.8 s} \\
-& \textbf{HAGA (Proposed)} & 2 / 30 & 6.7\% & 2.0 & 207,383.0 & 1,263.4 s \\
+& Canonical GA        & 0 / 30 & 0.0\% & 231.0 & 23,108,565.0 & 819.8 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 300.0 & 30,008,805.0 & 826.3 s \\
+& Simulated Annealing & \textbf{7 / 30} & \textbf{23.3\%} & \textbf{1.0} & \textbf{102,526.0} & \textbf{797.8 s} \\
+& \textbf{HAGA (Proposed)} & 2 / 30 & 6.7\% & 2.0 & 207,525.0 & 1,263.4 s \\
 \midrule
 \multirow{4}{*}{\texttt{comp21} (327 Events, 463 Constraints)} 
-& Canonical GA        & 0 / 30 & 0.0\% & 169.0 & 16,905,141.0 & 647.8 s \\
-& Discrete PSO        & 0 / 30 & 0.0\% & 227.5 & 22,755,959.5 & 659.0 s \\
-& Simulated Annealing & \textbf{12 / 30} & \textbf{40.0\%} & \textbf{1.0} & \textbf{100,714.0} & \textbf{635.3 s} \\
-& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\% & 3.0 & 305,063.5 & 997.3 s \\
+& Canonical GA        & 0 / 30 & 0.0\% & 169.0 & 16,905,321.0 & 647.8 s \\
+& Discrete PSO        & 0 / 30 & 0.0\% & 227.5 & 22,756,163.5 & 659.0 s \\
+& Simulated Annealing & \textbf{12 / 30} & \textbf{40.0\%} & \textbf{1.0} & \textbf{100,927.0} & \textbf{635.3 s} \\
+& \textbf{HAGA (Proposed)} & 0 / 30 & 0.0\% & 3.0 & 305,235.5 & 997.3 s \\
 \bottomrule
 \end{tabular}%
-}
-\end{table*}
+}\end{table*}
 
 Following the statistical testing framework formalized by Dem{\v{s}}ar~\cite{demsar2006statistical}, we applied the non-parametric Friedman omnibus test using the median fitness of each algorithm across the 21 independent benchmark instances ($N=21, k=4$). The test revealed a statistically significant difference among the algorithms ($\chi^2_F = 63.0000, p = 1.34 \times 10^{-13}, p < 10^{-12}$). 
 
@@ -418,7 +417,7 @@ To ensure scientific reproducibility and defensibility, potential threats to val
     \item \textbf{Internal Validity (Evaluation Budget Parity):} Comparing metaheuristics based on wall-clock time or arbitrary generation limits introduces severe hardware and implementation bias. In this study, all algorithms strictly shared an identical global objective evaluation quota ($B_{\max} = 50,000$). Every candidate schedule evaluation within ELS was deducted from $B_{\max}$, ensuring fair computational parity.
     \item \textbf{Construct Validity (Feasibility Dominance):} Aggregating hard ($HCV$) and soft ($SCV$) violations into a single scalar risks masking infeasible assignments behind low soft penalties. By imposing a scalar penalty weight of $W_{\text{hard}} = 100,000$, any schedule with $HCV \ge 1$ incurs $F(S) \ge 100,000$, ensuring strict Pareto dominance for valid schedules. Furthermore, $HCV$ and $SCV$ are decoupled in all reporting tables.
     \item \textbf{Conclusion Validity (Statistical Protocol):} As cautioned by Dem{\v{s}}ar~\cite{demsar2006statistical}, pooling multiple random seeds across different instances as independent samples constitutes pseudoreplication. In our statistical protocol, the median fitness across 30 seeds per instance serves as the primary statistical unit, evaluated via non-parametric Friedman omnibus and Nemenyi post-hoc tests.
-    \item \textbf{External Validity (Benchmark Generality):} Rather than evaluating HAGA on customized internal institutional data, experiments were conducted on standardized ITC 2007 benchmark instances spanning small, medium, and massive constraint topologies (up to 478 events and 1,368 constraints).
+    \item \textbf{External Validity (Benchmark Generality):} Rather than evaluating HAGA on customized internal institutional data, experiments were conducted on standardized ITC 2007 benchmark instances spanning small, medium, and massive constraint topologies (up to 434 events and 1,368 constraints).
 \end{itemize}
 
 \section{Conclusion}
