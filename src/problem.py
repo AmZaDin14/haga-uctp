@@ -232,3 +232,46 @@ class TimetablingProblem:
                 conflicted.add(i)
 
         return list(conflicted)
+
+    def get_soft_violation_lectures(self, chromosome: np.ndarray) -> List[int]:
+        """Lectures participating in at least one soft-constraint violation.
+
+        Used by ELS once a schedule is hard-feasible: instead of sampling a
+        uniformly random lecture, target courses that are short of working
+        days, unstable across rooms, or isolated inside a curriculum-day.
+        """
+        timeslots, rooms = self.decode(chromosome)
+        flagged: Set[int] = set()
+
+        course_days: List[Set[int]] = [set() for _ in range(self.num_courses)]
+        course_rooms: List[Set[int]] = [set() for _ in range(self.num_courses)]
+        course_lectures: List[List[int]] = [[] for _ in range(self.num_courses)]
+        for i, ts in enumerate(timeslots):
+            c_idx = self.lecture_courses[i]
+            course_days[c_idx].add(int(ts) // self.periods_per_day)
+            course_rooms[c_idx].add(int(rooms[i]))
+            course_lectures[c_idx].append(i)
+
+        for c_idx in range(self.num_courses):
+            if len(course_days[c_idx]) < self.course_min_days[c_idx]:
+                flagged.update(course_lectures[c_idx])
+            if len(course_rooms[c_idx]) > 1:
+                flagged.update(course_lectures[c_idx])
+
+        for c_indices in self.curriculum_courses:
+            c_set = set(c_indices)
+            day_periods: List[Dict[int, List[int]]] = [
+                {} for _ in range(self.num_days)
+            ]
+            for i, ts in enumerate(timeslots):
+                c_idx = self.lecture_courses[i]
+                if c_idx in c_set:
+                    day = int(ts) // self.periods_per_day
+                    period = int(ts) % self.periods_per_day
+                    day_periods[day].setdefault(period, []).append(i)
+            for periods in day_periods:
+                for period, lectures in periods.items():
+                    if (period - 1) not in periods and (period + 1) not in periods:
+                        flagged.update(lectures)
+
+        return sorted(flagged)

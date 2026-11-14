@@ -88,3 +88,14 @@ class OfficialObjectiveTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SoftTargetingTests(unittest.TestCase):
+    def test_soft_violation_lectures_flag_isolated(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            instance = parse_ctt(_tiny(tmpdir, students=5))
+            problem = TimetablingProblem(instance)
+            chromosome = np.zeros(problem.total_lectures, dtype=np.int32)
+
+            self.assertEqual(problem.get_conflicted_lectures(chromosome), [])
+            self.assertEqual(problem.get_soft_violation_lectures(chromosome), [0])

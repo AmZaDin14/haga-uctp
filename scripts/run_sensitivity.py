@@ -1,9 +1,10 @@
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportExplicitAny=false, reportAny=false, reportDeprecated=false, reportUnusedCallResult=false, reportAttributeAccessIssue=false, reportArgumentType=false
 """Hyperparameter Sensitivity Analysis Script for HAGA (RQ3).
 
-Evaluates the stability and performance of HAGA under controlled variations of:
-1. Slope sensitivity alpha in [0.10, 0.25, 0.40]
-2. Slope sensitivity beta in [0.10, 0.20, 0.30]
+Evaluates the stability and performance of HAGA under controlled variations of
+the linear span control law:
+1. Crossover floor Pc_min in [0.30, 0.40, 0.55]
+2. Mutation ceiling Pm_max in [0.05, 0.10, 0.20]
 3. Population size N in [30, 50, 100]
 
 Enforces evaluation budget parity (B_max) and validates every solution with src/validator.py.
@@ -35,28 +36,28 @@ DEFAULT_OUTPUT_DIR = "results/sensitivity"
 
 CONFIGURATIONS = [
     # Baseline
-    {"name": "Baseline (N=50, a=0.25, b=0.20)", "param": "nominal", "value": 0, "pop": 50, "alpha": 0.25, "beta": 0.20},
-    # Alpha sweep
-    {"name": "alpha=0.10 (low)", "param": "alpha", "value": 0.10, "pop": 50, "alpha": 0.10, "beta": 0.20},
-    {"name": "alpha=0.40 (high)", "param": "alpha", "value": 0.40, "pop": 50, "alpha": 0.40, "beta": 0.20},
-    # Beta sweep
-    {"name": "beta=0.10 (low)", "param": "beta", "value": 0.10, "pop": 50, "alpha": 0.25, "beta": 0.10},
-    {"name": "beta=0.30 (high)", "param": "beta", "value": 0.30, "pop": 50, "alpha": 0.25, "beta": 0.30},
+    {"name": "Baseline (N=50, Pc_min=0.40, Pm_max=0.10)", "param": "nominal", "value": 0, "pop": 50, "pc_min": 0.40, "pm_max": 0.10},
+    # Crossover floor sweep
+    {"name": "Pc_min=0.30 (low)", "param": "pc_min", "value": 0.30, "pop": 50, "pc_min": 0.30, "pm_max": 0.10},
+    {"name": "Pc_min=0.55 (high)", "param": "pc_min", "value": 0.55, "pop": 50, "pc_min": 0.55, "pm_max": 0.10},
+    # Mutation ceiling sweep
+    {"name": "Pm_max=0.05 (low)", "param": "pm_max", "value": 0.05, "pop": 50, "pc_min": 0.40, "pm_max": 0.05},
+    {"name": "Pm_max=0.20 (high)", "param": "pm_max", "value": 0.20, "pop": 50, "pc_min": 0.40, "pm_max": 0.20},
     # Population size sweep
-    {"name": "pop=30 (small)", "param": "pop_size", "value": 30, "pop": 30, "alpha": 0.25, "beta": 0.20},
-    {"name": "pop=100 (large)", "param": "pop_size", "value": 100, "pop": 100, "alpha": 0.25, "beta": 0.20},
+    {"name": "pop=30 (small)", "param": "pop_size", "value": 30, "pop": 30, "pc_min": 0.40, "pm_max": 0.10},
+    {"name": "pop=100 (large)", "param": "pop_size", "value": 100, "pop": 100, "pc_min": 0.40, "pm_max": 0.10},
 ]
 
 
 def _worker_sensitivity(task: tuple[str, int, float, float, int, int, str, str, Any]) -> dict[str, Any]:
-    inst_path, pop_size, alpha, beta, max_evals, seed, config_name, param_name, param_val = task
+    inst_path, pop_size, pc_min, pm_max, max_evals, seed, config_name, param_name, param_val = task
     raw_inst = parse_ctt(inst_path)
     prob = TimetablingProblem(raw_inst)
     haga = HAGA(
         prob,
         pop_size=pop_size,
-        alpha=alpha,
-        beta=beta,
+        pc_min=pc_min,
+        pm_max=pm_max,
         max_evaluations=max_evals,
         random_seed=seed,
     )
@@ -73,8 +74,8 @@ def _worker_sensitivity(task: tuple[str, int, float, float, int, int, str, str, 
         "param": str(param_name),
         "param_value": param_val,
         "pop_size": int(pop_size),
-        "alpha": float(alpha),
-        "beta": float(beta),
+        "pc_min": float(pc_min),
+        "pm_max": float(pm_max),
         "seed": int(seed),
         "best_hcv": int(audit["hcv"]),
         "best_scv": int(audit["scv"]),
@@ -107,8 +108,8 @@ def run_sensitivity(
             tasks.append((
                 instance_path,
                 int(c["pop"]),
-                float(c["alpha"]),
-                float(c["beta"]),
+                float(c["pc_min"]),
+                float(c["pm_max"]),
                 actual_evals,
                 s,
                 str(c["name"]),
