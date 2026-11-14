@@ -40,9 +40,9 @@ class CanonicalGA:
     def initialize_population(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Initialize random population and evaluate each individual."""
         pop = self.rng.integers(0, self.problem.total_slots, size=(self.pop_size, self.problem.total_lectures))
-        hcvs = np.zeros(self.pop_size, dtype=np.int64)
-        scvs = np.zeros(self.pop_size, dtype=np.int64)
-        fitnesses = np.zeros(self.pop_size, dtype=np.int64)
+        hcvs = np.zeros(self.pop_size, dtype=np.int32)
+        scvs = np.zeros(self.pop_size, dtype=np.int32)
+        fitnesses = np.zeros(self.pop_size, dtype=np.int32)
 
         for i in range(self.pop_size):
             h, s, f = self._eval(pop[i])

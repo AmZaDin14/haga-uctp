@@ -31,14 +31,11 @@ def validate_solution(
       2. teacher_conflict: at most one lecture per teacher at any timeslot
       3. curriculum_conflict: at most one lecture per curriculum at any timeslot
       4. unavailability: lectures scheduled in prohibited course timeslots
-      5. room_capacity: lectures assigned to rooms smaller than the course
     - Soft Constraint Violations (SCV):
-      1. min_working_days: penalty of 5 per missing day below course threshold
-      2. curriculum_compactness: penalty of 2 per isolated lecture
-      3. room_stability: penalty of 1 per additional distinct room per course
-
-    Hard-conflict counts are pairwise (a slot with k lectures contributes
-    C(k, 2)), matching the ITC 2007 definition.
+      1. room_capacity: excess students over room capacity
+      2. min_working_days: penalty of 5 per missing day below course threshold
+      3. curriculum_compactness: penalty of 2 per isolated lecture
+      4. room_stability: penalty of 1 per additional distinct room per course
     """
     chrom = np.asarray(chromosome, dtype=np.int32)
     if len(chrom) != instance.total_lectures:
@@ -61,7 +58,7 @@ def validate_solution(
     for slot in chrom:
         slot_val = int(slot)
         room_slot_counts[slot_val] = room_slot_counts.get(slot_val, 0) + 1
-    hcv_room = sum(count * (count - 1) // 2 for count in room_slot_counts.values() if count > 1)
+    hcv_room = sum(count - 1 for count in room_slot_counts.values() if count > 1)
 
     # 1.2 Teacher Conflict: at most one lecture per teacher per timeslot
     teacher_slot_counts: dict[tuple[str, int], int] = {}
@@ -71,7 +68,7 @@ def validate_solution(
         teacher = instance.courses[c_id].teacher
         key = (teacher, t_idx)
         teacher_slot_counts[key] = teacher_slot_counts.get(key, 0) + 1
-    hcv_teacher = sum(count * (count - 1) // 2 for count in teacher_slot_counts.values() if count > 1)
+    hcv_teacher = sum(count - 1 for count in teacher_slot_counts.values() if count > 1)
 
     # 1.3 Curriculum Conflict: at most one lecture per curriculum per timeslot
     curr_slot_counts: dict[tuple[str, int], int] = {}
@@ -82,7 +79,7 @@ def validate_solution(
             if c_id in courses:
                 key = (curr_id, t_idx)
                 curr_slot_counts[key] = curr_slot_counts.get(key, 0) + 1
-    hcv_curriculum = sum(count * (count - 1) // 2 for count in curr_slot_counts.values() if count > 1)
+    hcv_curriculum = sum(count - 1 for count in curr_slot_counts.values() if count > 1)
 
     # 1.4 Unavailability: lecture scheduled in prohibited timeslot
     hcv_unavail = 0
@@ -94,21 +91,23 @@ def validate_solution(
         if (c_id, day, period) in instance.unavailability:
             hcv_unavail += 1
 
-    # 1.5 Room Capacity (hard in ITC 2007 CB-CTT)
-    hcv_capacity = 0
-    for lec_idx, r_idx in enumerate(rooms):
-        c_idx = instance.lecture_to_course[lec_idx]
-        c_id = idx_to_course[c_idx]
-        if instance.courses[c_id].num_students > rooms_list[r_idx].capacity:
-            hcv_capacity += 1
-
-    hcv_total = hcv_room + hcv_teacher + hcv_curriculum + hcv_unavail + hcv_capacity
+    hcv_total = hcv_room + hcv_teacher + hcv_curriculum + hcv_unavail
 
     # ==============================================================
     # 2. SOFT CONSTRAINTS
     # ==============================================================
 
-    # 2.1 Minimum Working Days: penalty of 5 per day below min_working_days
+    # 2.1 Room Capacity: students exceeding room capacity
+    scv_capacity = 0
+    for lec_idx, r_idx in enumerate(rooms):
+        c_idx = instance.lecture_to_course[lec_idx]
+        c_id = idx_to_course[c_idx]
+        students = instance.courses[c_id].num_students
+        capacity = rooms_list[r_idx].capacity
+        if students > capacity:
+            scv_capacity += (students - capacity)
+
+    # 2.2 Minimum Working Days: penalty of 5 per day below min_working_days
     scv_min_days = 0
     course_days: dict[str, set[int]] = {c_id: set() for c_id in instance.courses}
     for lec_idx, t_idx in enumerate(timeslots):
@@ -123,7 +122,7 @@ def validate_solution(
         if used_days < min_days:
             scv_min_days += 5 * (min_days - used_days)
 
-    # 2.2 Curriculum Compactness: penalty of 2 for isolated lectures
+    # 2.3 Curriculum Compactness: penalty of 2 for isolated lectures
     scv_compactness = 0
     for curr_id, curr_course_ids in instance.curricula.items():
         curr_course_set = set(curr_course_ids)
@@ -138,12 +137,12 @@ def validate_solution(
                 curr_day_periods[day].add(period)
 
         for day_periods in curr_day_periods:
-            if not day_periods:
+            if len(day_periods) <= 1:
                 continue
             for p in day_periods:
                 if (p - 1) not in day_periods and (p + 1) not in day_periods:
                     scv_compactness += 2
-    # 2.3 Room Stability: penalty of 1 per additional distinct room
+    # 2.4 Room Stability: penalty of 1 per additional distinct room
     scv_room_stability = 0
     course_rooms: dict[str, set[int]] = {c_id: set() for c_id in instance.courses}
     for lec_idx, r_idx in enumerate(rooms):
@@ -156,7 +155,7 @@ def validate_solution(
         if len(distinct_rooms) > 1:
             scv_room_stability += len(distinct_rooms) - 1
 
-    scv_total = scv_min_days + scv_compactness + scv_room_stability
+    scv_total = scv_capacity + scv_min_days + scv_compactness + scv_room_stability
 
     return {
         "valid": True,
@@ -168,9 +167,9 @@ def validate_solution(
             "teacher_conflict": int(hcv_teacher),
             "curriculum_conflict": int(hcv_curriculum),
             "unavailability": int(hcv_unavail),
-            "room_capacity": int(hcv_capacity),
         },
         "scv_breakdown": {
+            "room_capacity": int(scv_capacity),
             "min_working_days": int(scv_min_days),
             "curriculum_compactness": int(scv_compactness),
             "room_stability": int(scv_room_stability),

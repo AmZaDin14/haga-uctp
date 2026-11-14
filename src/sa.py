@@ -29,8 +29,8 @@ class SimulatedAnnealing:
         self,
         problem: TimetablingProblem,
         t_init: float = 100.0,
-        t_min: float = 0.01,
-        cooling_rate: float = 0.990,
+        t_min: float = 0.001,
+        cooling_rate: float = 0.995,
         steps_per_temp: int = 50,
         max_evaluations: int = 25000,
         random_seed: int | None = None,
@@ -48,27 +48,9 @@ class SimulatedAnnealing:
         self.eval_count += 1
         return self.problem.evaluate(chromosome)
 
-    def generate_neighbor(
-        self,
-        current: np.ndarray,
-        conflicted: list[int] | None = None,
-    ) -> np.ndarray:
-        """Perturb the solution, preferring lectures involved in hard conflicts.
-
-        Targeting the violated lectures turns the random walk into a directed
-        repair process: with 160-434 lectures, a uniformly random move lands on
-        a conflicted lecture only a few percent of the time.
-        """
+    def generate_neighbor(self, current: np.ndarray) -> np.ndarray:
+        """Perturb solution by reassigning a random lecture or swapping two lectures."""
         neighbor = current.copy()
-        if conflicted and self.rng.random() < 0.80:
-            target = int(self.rng.choice(conflicted))
-            if self.rng.random() < 0.5:
-                other = int(self.rng.integers(0, self.problem.total_lectures))
-                neighbor[target], neighbor[other] = neighbor[other], neighbor[target]
-            else:
-                neighbor[target] = int(self.rng.integers(0, self.problem.total_slots))
-            return neighbor
-
         if self.rng.random() < 0.70:
             # Reassign single lecture to a random slot
             gene_idx = int(self.rng.integers(0, self.problem.total_lectures))
@@ -108,7 +90,6 @@ class SimulatedAnnealing:
 
         t = self.t_init
         iteration = 0
-        conflicted: list[int] = []
 
         while self.eval_count < self.max_evaluations:
             iteration += 1
@@ -117,10 +98,7 @@ class SimulatedAnnealing:
                 if self.eval_count >= self.max_evaluations:
                     break
 
-                if not conflicted or self.eval_count % 50 == 0:
-                    conflicted = self.problem.get_conflicted_lectures(current_state)
-
-                candidate = self.generate_neighbor(current_state, conflicted)
+                candidate = self.generate_neighbor(current_state)
                 h_new, s_new, f_new = self._eval(candidate)
                 delta = f_new - c_fit
 
