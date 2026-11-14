@@ -52,9 +52,9 @@ class DiscretePSO:
         particles = self.rng.integers(
             0, self.problem.total_slots, size=(self.swarm_size, self.problem.total_lectures)
         )
-        hcvs = np.zeros(self.swarm_size, dtype=np.int32)
-        scvs = np.zeros(self.swarm_size, dtype=np.int32)
-        fitnesses = np.zeros(self.swarm_size, dtype=np.int32)
+        hcvs = np.zeros(self.swarm_size, dtype=np.int64)
+        scvs = np.zeros(self.swarm_size, dtype=np.int64)
+        fitnesses = np.zeros(self.swarm_size, dtype=np.int64)
 
         for i in range(self.swarm_size):
             h, s, f = self._eval(particles[i])

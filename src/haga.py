@@ -21,12 +21,10 @@ class HAGA:
         pop_size: int = 50,
         pc_base: float = 0.80,
         pm_base: float = 0.05,
-        alpha: float = 0.20,
-        beta: float = 0.20,
         pc_min: float = 0.40,
         pc_max: float = 0.95,
         pm_min: float = 0.01,
-        pm_max: float = 0.30,
+        pm_max: float = 0.10,
         tournament_k: int = 3,
         elitism_k: int = 2,
         els_elite_ratio: float = 0.10,
@@ -40,8 +38,6 @@ class HAGA:
         self.pop_size = pop_size
         self.pc_base = pc_base
         self.pm_base = pm_base
-        self.alpha = alpha
-        self.beta = beta
         self.pc_min = pc_min
         self.pc_max = pc_max
         self.pm_min = pm_min
@@ -75,20 +71,25 @@ class HAGA:
         return float(np.clip(h_norm, 0.0, 1.0))
 
     def adapt_parameters(self, h_norm: float) -> Tuple[float, float]:
-        """Compute Pc and Pm using linear diversity feedback within clamping bounds."""
-        pc = self.pc_base * (1.0 + self.alpha * h_norm)
-        pm = self.pm_base * (1.0 + self.beta * (1.0 - h_norm))
+        """Linear span control law over the full configured ranges.
 
-        pc_clamped = float(np.clip(pc, self.pc_min, self.pc_max))
-        pm_clamped = float(np.clip(pm, self.pm_min, self.pm_max))
-        return pc_clamped, pm_clamped
+        High diversity (H -> 1): crossover high, mutation low.
+        Low diversity  (H -> 0): crossover low, mutation high.
+
+        Both parameters traverse [pc_min, pc_max] and [pm_min, pm_max]
+        respectively, so the declared bounds are actually reachable.
+        """
+        h = float(np.clip(h_norm, 0.0, 1.0))
+        pc = self.pc_min + (self.pc_max - self.pc_min) * h
+        pm = self.pm_min + (self.pm_max - self.pm_min) * (1.0 - h)
+        return float(pc), float(pm)
 
     def initialize_population(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Initialize random population and evaluate each individual."""
         pop = self.rng.integers(0, self.problem.total_slots, size=(self.pop_size, self.problem.total_lectures))
-        hcvs = np.zeros(self.pop_size, dtype=np.int32)
-        scvs = np.zeros(self.pop_size, dtype=np.int32)
-        fitnesses = np.zeros(self.pop_size, dtype=np.int32)
+        hcvs = np.zeros(self.pop_size, dtype=np.int64)
+        scvs = np.zeros(self.pop_size, dtype=np.int64)
+        fitnesses = np.zeros(self.pop_size, dtype=np.int64)
 
         for i in range(self.pop_size):
             h, s, f = self._eval(pop[i])
@@ -131,26 +132,44 @@ class HAGA:
         fitness: int
     ) -> Tuple[np.ndarray, int, int, int]:
         """
-        Stochastic first-improvement hill climbing on conflicted lectures.
-        Stops when budget is exhausted or max steps reached.
+        Stochastic hill climbing with reassignment and swap moves.
+
+        Targets lectures involved in hard conflicts while infeasible, and
+        lectures involved in soft violations once feasible. The candidate pool
+        is refreshed every 10 steps to keep the scan affordable.
         """
         best_chrom = chromosome.copy()
         curr_hcv, curr_scv, curr_fit = hcv, scv, fitness
+        pool: List[int] = []
 
         for step in range(self.els_max_steps):
             if self.eval_count >= self.max_evaluations:
                 break
 
-            # Prioritize lectures involved in conflicts
-            conflicted = self.problem.get_conflicted_lectures(best_chrom)
-            if conflicted:
-                target_lec = self.rng.choice(conflicted)
-            else:
-                target_lec = self.rng.integers(0, self.problem.total_lectures)
+            if step % 10 == 0:
+                conflicted = self.problem.get_conflicted_lectures(best_chrom)
+                if conflicted:
+                    pool = conflicted
+                else:
+                    pool = self.problem.get_soft_violation_lectures(best_chrom)
 
-            # Propose neighbor: assign to random new slot
+            if pool:
+                target_lec = int(self.rng.choice(pool))
+            else:
+                target_lec = int(self.rng.integers(0, self.problem.total_lectures))
+
             candidate = best_chrom.copy()
-            candidate[target_lec] = self.rng.integers(0, self.problem.total_slots)
+            if self.rng.random() < 0.5:
+                # Swap two lectures: preserves the slot multiset and can move a
+                # course to a better room/period without passing through a
+                # duplicate-slot intermediate.
+                other = int(self.rng.integers(0, self.problem.total_lectures))
+                candidate[target_lec], candidate[other] = (
+                    candidate[other],
+                    candidate[target_lec],
+                )
+            else:
+                candidate[target_lec] = self.rng.integers(0, self.problem.total_slots)
 
             cand_hcv, cand_scv, cand_fit = self._eval(candidate)
 

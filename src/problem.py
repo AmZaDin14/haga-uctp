@@ -93,12 +93,14 @@ class TimetablingProblem:
         hcv = 0
 
         # 1. Room occupancy: at most 1 lecture per (timeslot, room)
+        #    Penalty counts conflicting pairs, matching the ITC 2007 definition
+        #    (a slot with k lectures violates C(k,2) room-occupancy constraints).
         slot_counts = {}
         for slot in chromosome:
             slot_counts[slot] = slot_counts.get(slot, 0) + 1
         for count in slot_counts.values():
             if count > 1:
-                hcv += (count - 1)
+                hcv += count * (count - 1) // 2
 
         # 2. Teacher conflict & 3. Curriculum conflict (grouped by timeslot)
         ts_to_courses: List[List[int]] = [[] for _ in range(self.total_timeslots)]
@@ -116,13 +118,13 @@ class TimetablingProblem:
                 seen_teachers[t] = seen_teachers.get(t, 0) + 1
             for count in seen_teachers.values():
                 if count > 1:
-                    hcv += (count - 1)
+                    hcv += count * (count - 1) // 2
 
             # Check curriculum collisions in this timeslot
             for curr_indices in self.curriculum_courses:
                 count = sum(1 for c in c_list if c in curr_indices)
                 if count > 1:
-                    hcv += (count - 1)
+                    hcv += count * (count - 1) // 2
 
         # 4. Teacher/Course Unavailability
         for i, ts in enumerate(timeslots):
@@ -130,18 +132,17 @@ class TimetablingProblem:
             if self.unavailable[c_idx, ts]:
                 hcv += 1
 
-        # --- SOFT CONSTRAINTS (SCV) ---
-        scv = 0
-
-        # 1. Room Capacity: students > capacity
+        # 5. Room Capacity: HARD in ITC 2007 CB-CTT. A lecture whose course
+        #    exceeds its assigned room's capacity is one violation.
         for i, r in enumerate(rooms):
             c_idx = self.lecture_courses[i]
-            cap = self.room_capacities[r]
-            students = self.course_students[c_idx]
-            if students > cap:
-                scv += (students - cap)
+            if self.course_students[c_idx] > self.room_capacities[r]:
+                hcv += 1
 
-        # 2. Minimum Working Days
+        # --- SOFT CONSTRAINTS (SCV), official ITC 2007 objective ---
+        scv = 0
+
+        # 1. Minimum Working Days
         # Course lectures grouped by course
         course_days: List[Set[int]] = [set() for _ in range(self.num_courses)]
         course_rooms: List[Set[int]] = [set() for _ in range(self.num_courses)]
@@ -157,18 +158,18 @@ class TimetablingProblem:
             if distinct_days < min_days:
                 scv += 5 * (min_days - distinct_days)
 
-        # 3. Room Stability: distinct rooms used for course > 1
+        # 2. Room Stability: distinct rooms used for course > 1
         for c_idx in range(self.num_courses):
             distinct_rooms = len(course_rooms[c_idx])
             if distinct_rooms > 1:
                 scv += (distinct_rooms - 1)
 
-        # 4. Curriculum Compactness: isolated lectures in a curriculum
+        # 3. Curriculum Compactness: isolated lectures in a curriculum
         # Group lectures by curriculum, day -> set of periods
         for curr_idx, c_indices in enumerate(self.curriculum_courses):
             c_set = set(c_indices)
             curr_day_periods: List[Set[int]] = [set() for _ in range(self.num_days)]
-            
+
             for i, ts in enumerate(timeslots):
                 c_idx = self.lecture_courses[i]
                 if c_idx in c_set:
@@ -177,10 +178,11 @@ class TimetablingProblem:
                     curr_day_periods[day].add(period)
 
             for day_periods in curr_day_periods:
-                if len(day_periods) <= 1:
+                # A day with a single lecture has no adjacent lecture, so it is
+                # isolated under the official definition (+2).
+                if not day_periods:
                     continue
                 for p in day_periods:
-                    # Isolated if neither (p - 1) nor (p + 1) is in day_periods
                     if (p - 1) not in day_periods and (p + 1) not in day_periods:
                         scv += 2
 
@@ -230,4 +232,53 @@ class TimetablingProblem:
             if self.unavailable[c_idx, ts]:
                 conflicted.add(i)
 
+        # Room capacity (hard)
+        for i, r in enumerate(rooms):
+            c_idx = self.lecture_courses[i]
+            if self.course_students[c_idx] > self.room_capacities[r]:
+                conflicted.add(i)
+
         return list(conflicted)
+
+    def get_soft_violation_lectures(self, chromosome: np.ndarray) -> List[int]:
+        """Lectures participating in at least one soft-constraint violation.
+
+        Used by ELS once the schedule is hard-feasible: rather than sampling a
+        uniformly random lecture, it targets courses that are short of working
+        days, unstable across rooms, or isolated inside a curriculum-day.
+        """
+        timeslots, rooms = self.decode(chromosome)
+        flagged: Set[int] = set()
+
+        course_days: List[Set[int]] = [set() for _ in range(self.num_courses)]
+        course_rooms: List[Set[int]] = [set() for _ in range(self.num_courses)]
+        course_lectures: List[List[int]] = [[] for _ in range(self.num_courses)]
+        for i, ts in enumerate(timeslots):
+            c_idx = self.lecture_courses[i]
+            course_days[c_idx].add(int(ts) // self.periods_per_day)
+            course_rooms[c_idx].add(int(rooms[i]))
+            course_lectures[c_idx].append(i)
+
+        for c_idx in range(self.num_courses):
+            if len(course_days[c_idx]) < self.course_min_days[c_idx]:
+                flagged.update(course_lectures[c_idx])
+            if len(course_rooms[c_idx]) > 1:
+                flagged.update(course_lectures[c_idx])
+
+        for c_indices in self.curriculum_courses:
+            c_set = set(c_indices)
+            day_periods: List[Dict[int, List[int]]] = [
+                {} for _ in range(self.num_days)
+            ]
+            for i, ts in enumerate(timeslots):
+                c_idx = self.lecture_courses[i]
+                if c_idx in c_set:
+                    day = int(ts) // self.periods_per_day
+                    period = int(ts) % self.periods_per_day
+                    day_periods[day].setdefault(period, []).append(i)
+            for periods in day_periods:
+                for period, lectures in periods.items():
+                    if (period - 1) not in periods and (period + 1) not in periods:
+                        flagged.update(lectures)
+
+        return sorted(flagged)
