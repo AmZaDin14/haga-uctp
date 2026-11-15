@@ -28,7 +28,7 @@ def main() -> int:
     rows = []
     for instance, group in data.groupby("instance"):
         for algorithm, arm in group.groupby("algorithm"):
-            feasible = arm[arm["feasible"]]
+            feasible = arm[arm["feasible"].astype(bool)]
             rows.append({
                 "instance": instance,
                 "algorithm": algorithm,
