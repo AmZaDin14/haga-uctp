@@ -238,10 +238,14 @@ class HAGA:
             generation += 1
 
             # 1. Diversity measurement & parameter adaptation
-            h_norm = self.calculate_diversity(pop)
             if self.enable_apc:
+                h_norm = self.calculate_diversity(pop)
                 pc, pm = self.adapt_parameters(h_norm)
             else:
+                # APC-disabled arms (GA_ELS, GA_ELS_Random, GA_Static) do not
+                # use the diversity signal, so they must not pay its O(N^2 E)
+                # per-generation cost.
+                h_norm = 0.0
                 pc, pm = self.pc_base, self.pm_base
             # 2. Elitism: preserve top individuals
             sorted_indices = np.argsort(fitnesses)

@@ -125,7 +125,8 @@ def _plot_convergence(
                 ]))
                 budgets = budgets[(budgets >= start) & (budgets <= end)]
                 for algorithm, curves in trajectories.items():
-                    # No backfill or extrapolation: every seed contributes at every budget.
+                    # Best-so-far histories are monotone, so forward-fill to the
+                    # common budgets is exact backfill of the incumbent value.
                     aligned = [curve.reindex(curve.index.union(pd.Index(budgets))).sort_index()
                                .ffill().reindex(budgets).to_numpy(dtype=float)
                                for curve in curves]

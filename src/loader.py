@@ -124,6 +124,22 @@ def parse_ctt(filepath: str) -> ProblemInstance:
         idx += 1
 
     # Build index mappings
+    if instance.courses and headers.get("Courses"):
+        if len(instance.courses) != int(headers["Courses"]):
+            raise ValueError(
+                f"Header declares {headers['Courses']} courses but {len(instance.courses)} were parsed"
+            )
+    if instance.rooms and headers.get("Rooms"):
+        if len(instance.rooms) != int(headers["Rooms"]):
+            raise ValueError(
+                f"Header declares {headers['Rooms']} rooms but {len(instance.rooms)} were parsed"
+            )
+    if instance.curricula and headers.get("Curricula"):
+        if len(instance.curricula) != int(headers["Curricula"]):
+            raise ValueError(
+                f"Header declares {headers['Curricula']} curricula but {len(instance.curricula)} were parsed"
+            )
+
     instance.room_id_to_idx = {r.id: i for i, r in enumerate(instance.rooms)}
     course_list = list(instance.courses.keys())
     instance.course_id_to_idx = {c: i for i, c in enumerate(course_list)}
