@@ -30,6 +30,8 @@ class HAGA:
         els_elite_ratio: float = 0.10,
         els_max_steps: int = 50,
         els_final_share: float = 0.30,
+        els_target: str = "violations",
+        label: str = "",
         max_evaluations: int = 25000,
         enable_apc: bool = True,
         enable_els: bool = True,
@@ -48,6 +50,10 @@ class HAGA:
         self.els_elite_count = max(2, int(els_elite_ratio * pop_size))
         self.els_max_steps = els_max_steps
         self.els_final_share = float(np.clip(els_final_share, 0.0, 0.9))
+        if els_target not in {"violations", "random"}:
+            raise ValueError("els_target must be 'violations' or 'random'")
+        self.els_target = els_target
+        self.label = label
         self.max_evaluations = max_evaluations
         self.enable_apc = enable_apc
         self.enable_els = enable_els
@@ -150,7 +156,11 @@ class HAGA:
             if self.eval_count >= self.max_evaluations:
                 break
 
-            if step % 10 == 0:
+            if self.els_target == "random":
+                # Control arm: identical move set and budget, but no
+                # conflict/soft targeting.
+                pool = []
+            elif step % 10 == 0:
                 conflicted = self.problem.get_conflicted_lectures(best_chrom)
                 if conflicted:
                     pool = conflicted
@@ -332,13 +342,16 @@ class HAGA:
 
         elapsed = time.time() - start_time
 
-        algo_name = "HAGA"
-        if not self.enable_apc and not self.enable_els:
-            algo_name = "GA_Static"
-        elif self.enable_apc and not self.enable_els:
-            algo_name = "GA_APC"
-        elif not self.enable_apc and self.enable_els:
-            algo_name = "GA_ELS"
+        if self.label:
+            algo_name = self.label
+        else:
+            algo_name = "HAGA"
+            if not self.enable_apc and not self.enable_els:
+                algo_name = "GA_Static"
+            elif self.enable_apc and not self.enable_els:
+                algo_name = "GA_APC"
+            elif not self.enable_apc and self.enable_els:
+                algo_name = "GA_ELS"
 
         return {
             "algorithm": algo_name,

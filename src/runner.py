@@ -37,12 +37,13 @@ ALGORITHMS = {
     "HAGA": HAGA,
     "GA_APC": HAGA,
     "GA_ELS": HAGA,
+    "GA_ELS_Random": HAGA,
     "SAGA_Reconstructed": SAGA_Reconstructed,
 }
 MODES = {
     "preliminary": ["Canonical_GA", "HAGA"],
     "comparative": ["Canonical_GA", "Discrete_PSO", "Simulated_Annealing", "HAGA"],
-    "ablation": ["Canonical_GA", "GA_APC", "GA_ELS", "HAGA"],
+    "ablation": ["Canonical_GA", "GA_APC", "GA_ELS", "GA_ELS_Random", "HAGA"],
     "pilot": ["Canonical_GA", "Simulated_Annealing", "GA_ELS", "HAGA"],
     "haga_only": ["HAGA"],
     "saga_comparison": ["Canonical_GA", "HAGA", "SAGA_Reconstructed"],
@@ -66,9 +67,12 @@ def _parameters(name: str, pop_size: int, budget: int) -> dict[str, Any]:
         parameters["pop_size"] = pop_size
     if "swarm_size" in parameters:
         parameters["swarm_size"] = pop_size
-    if name in {"HAGA", "GA_APC", "GA_ELS"}:
-        parameters["enable_apc"] = name != "GA_ELS"
-        parameters["enable_els"] = name != "GA_APC"
+    if name in {"HAGA", "GA_APC", "GA_ELS", "GA_ELS_Random"}:
+        parameters["enable_apc"] = name in {"HAGA", "GA_APC"}
+        parameters["enable_els"] = name in {"HAGA", "GA_ELS", "GA_ELS_Random"}
+        parameters["label"] = name
+    if name == "GA_ELS_Random":
+        parameters["els_target"] = "random"
     return parameters
 
 

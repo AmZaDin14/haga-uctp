@@ -137,16 +137,26 @@ def run_sensitivity(
     df.to_csv(csv_file, index=False)
     print(f"Saved raw summary: {csv_file}")
 
-    # Aggregated metrics
+    # Stratified metrics: feasibility is reported separately, and SCV is
+    # summarised only over feasible runs. Pooling them gives a bimodal median
+    # (feasible ~1e3, infeasible ~1e5) that no configuration can be compared on.
+    feasible = df[df["feasible"].astype(bool)]
+    conditional = feasible.groupby("config_name").agg(
+        scv_median_feasible=("best_scv", "median"),
+        scv_iqr_feasible=("best_scv", lambda x: float(np.percentile(x, 75) - np.percentile(x, 25))
+                          if len(x) > 1 else 0.0),
+    )
     agg = df.groupby("config_name").agg(
         feasible_count=("feasible", "sum"),
         total_runs=("feasible", "count"),
         hcv_median=("best_hcv", "median"),
-        fitness_median=("best_fitness", "median"),
-        fitness_iqr=("best_fitness", lambda x: float(np.percentile(x, 75) - np.percentile(x, 25))),
         runtime_median=("runtime_seconds", "median"),
-    ).reset_index()
+    ).join(conditional).reset_index()
     agg["feasibility_rate"] = agg["feasible_count"] / agg["total_runs"]
+    agg = agg[[
+        "config_name", "feasible_count", "total_runs", "feasibility_rate",
+        "hcv_median", "scv_median_feasible", "scv_iqr_feasible", "runtime_median",
+    ]]
 
     agg_file = out_path / "sensitivity_aggregated.csv"
     agg.to_csv(agg_file, index=False)
@@ -162,19 +172,27 @@ def run_sensitivity(
 
         plt.figure(figsize=(12, 6))
         config_names = [str(c["name"]) for c in configs]
-        data = [df[df["config_name"] == name]["best_fitness"].values for name in config_names]
+        data = []
+        labels = []
+        for name in config_names:
+            values = df[(df["config_name"] == name) & df["feasible"].astype(bool)]["best_scv"].values
+            if len(values):
+                data.append(values)
+                labels.append(name.replace(" ", "\n"))
 
-        plt.boxplot(data, tick_labels=[name.replace(" ", "\n") for name in config_names])
-        plt.title(f"HAGA Sensitivity Analysis - Best Fitness ({Path(instance_path).stem}, B_max={actual_evals})")
-        plt.ylabel("Internal Fitness (Log Scale)")
-        plt.yscale("log")
-        plt.grid(True, linestyle="--", alpha=0.6)
-        plt.tight_layout()
+        if not data:
+            print("No feasible runs across configurations; boxplot skipped.")
+        else:
+            plt.boxplot(data, tick_labels=labels)
+            plt.title(f"HAGA Sensitivity - SCV of feasible runs ({Path(instance_path).stem}, B_max={actual_evals})")
+            plt.ylabel("SCV (feasible runs only)")
+            plt.grid(True, linestyle="--", alpha=0.6)
+            plt.tight_layout()
 
-        plot_file = out_path / "sensitivity_boxplot.png"
-        plt.savefig(plot_file, dpi=200)
-        plt.close()
-        print(f"Saved boxplot: {plot_file}")
+            plot_file = out_path / "sensitivity_boxplot.png"
+            plt.savefig(plot_file, dpi=200)
+            plt.close()
+            print(f"Saved boxplot: {plot_file}")
     except Exception as e:
         print(f"Plotting skipped: {e}")
 

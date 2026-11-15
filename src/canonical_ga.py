@@ -15,7 +15,7 @@ class CanonicalGA:
         self,
         problem: TimetablingProblem,
         pop_size: int = 50,
-        pc: float = 0.85,
+        pc: float = 0.80,
         pm: float = 0.05,
         tournament_k: int = 3,
         elitism_k: int = 2,

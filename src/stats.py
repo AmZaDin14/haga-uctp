@@ -15,17 +15,12 @@ import pandas as pd
 from scipy import stats
 
 
-# Studentized range critical values q_alpha / sqrt(2) for alpha=0.05 from Demšar (2006), Table 5
-NEMENYI_Q_ALPHA_005: dict[int, float] = {
-    2: 1.960,
-    3: 2.343,
-    4: 2.569,
-    5: 2.728,
-    6: 2.850,
-    7: 2.949,
-    8: 3.031,
-    9: 3.102,
-    10: 3.164,
+# Studentized range critical values q_alpha for the two-tailed Nemenyi test
+# (Demšar 2006, Table 5), by significance level and number of algorithms.
+NEMENYI_Q_ALPHA: dict[float, dict[int, float]] = {
+    0.01: {2: 2.576, 3: 2.913, 4: 3.113, 5: 3.255, 6: 3.364, 7: 3.452, 8: 3.526, 9: 3.590, 10: 3.646},
+    0.05: {2: 1.960, 3: 2.343, 4: 2.569, 5: 2.728, 6: 2.850, 7: 2.949, 8: 3.031, 9: 3.102, 10: 3.164},
+    0.10: {2: 1.645, 3: 2.052, 4: 2.291, 5: 2.459, 6: 2.589, 7: 2.693, 8: 2.780, 9: 2.855, 10: 2.920},
 }
 
 
@@ -103,9 +98,22 @@ def compute_nemenyi_cd(
     """
     Compute Critical Difference (CD) for Nemenyi test:
     CD = q_alpha * sqrt(k * (k + 1) / (6 * N))
+
+    The critical value depends on both alpha and k; both must be tabulated
+    (Demšar's q table covers k = 2..10 and alpha in {0.01, 0.05, 0.10}).
     """
-    _ = alpha
-    q = NEMENYI_Q_ALPHA_005.get(num_algorithms, 2.569)
+    try:
+        table = NEMENYI_Q_ALPHA[alpha]
+    except KeyError as error:
+        supported = sorted(NEMENYI_Q_ALPHA)
+        raise ValueError(f"alpha must be one of {supported}, got {alpha!r}") from error
+    try:
+        q = table[num_algorithms]
+    except KeyError as error:
+        raise ValueError(
+            f"num_algorithms must be in 2..10 for the Nemenyi q table, got {num_algorithms}"
+        ) from error
+
     k = num_algorithms
     n = num_instances
     return float(q * math.sqrt((k * (k + 1)) / (6.0 * n)))
