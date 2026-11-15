@@ -29,6 +29,7 @@ class HAGA:
         elitism_k: int = 2,
         els_elite_ratio: float = 0.10,
         els_max_steps: int = 50,
+        els_final_share: float = 0.30,
         max_evaluations: int = 25000,
         enable_apc: bool = True,
         enable_els: bool = True,
@@ -46,6 +47,7 @@ class HAGA:
         self.elitism_k = elitism_k
         self.els_elite_count = max(2, int(els_elite_ratio * pop_size))
         self.els_max_steps = els_max_steps
+        self.els_final_share = float(np.clip(els_final_share, 0.0, 0.9))
         self.max_evaluations = max_evaluations
         self.enable_apc = enable_apc
         self.enable_els = enable_els
@@ -129,7 +131,8 @@ class HAGA:
         chromosome: np.ndarray,
         hcv: int,
         scv: int,
-        fitness: int
+        fitness: int,
+        max_steps: int | None = None,
     ) -> Tuple[np.ndarray, int, int, int]:
         """
         Stochastic hill climbing with reassignment and swap moves.
@@ -141,8 +144,9 @@ class HAGA:
         best_chrom = chromosome.copy()
         curr_hcv, curr_scv, curr_fit = hcv, scv, fitness
         pool: List[int] = []
+        steps = self.els_max_steps if max_steps is None else int(max_steps)
 
-        for step in range(self.els_max_steps):
+        for step in range(steps):
             if self.eval_count >= self.max_evaluations:
                 break
 
@@ -211,7 +215,16 @@ class HAGA:
         }]
 
         generation = 0
-        while self.eval_count < self.max_evaluations:
+        # Stage 1: population search on (1 - final_share) of the budget.
+        # Stage 2: single-best intensification consumes the remainder exactly.
+        population_budget = self.max_evaluations
+        if self.enable_els and self.els_final_share > 0:
+            population_budget = max(
+                self.pop_size,
+                int(self.max_evaluations * (1.0 - self.els_final_share)),
+            )
+
+        while self.eval_count < population_budget:
             generation += 1
 
             # 1. Diversity measurement & parameter adaptation
@@ -229,7 +242,7 @@ class HAGA:
 
             # 3. Selection, Crossover, Mutation for offspring
             while len(new_pop) < self.pop_size:
-                if self.eval_count >= self.max_evaluations:
+                if self.eval_count >= population_budget:
                     break
 
                 p1_idx = self.tournament_selection(fitnesses)
@@ -239,14 +252,14 @@ class HAGA:
                 c1 = self.mutate(c1, pm)
                 c2 = self.mutate(c2, pm)
 
-                if self.eval_count < self.max_evaluations:
+                if self.eval_count < population_budget:
                     h1, s1, f1 = self._eval(c1)
                     new_pop.append(c1)
                     new_hcvs.append(h1)
                     new_scvs.append(s1)
                     new_fitnesses.append(f1)
 
-                if len(new_pop) < self.pop_size and self.eval_count < self.max_evaluations:
+                if len(new_pop) < self.pop_size and self.eval_count < population_budget:
                     h2, s2, f2 = self._eval(c2)
                     new_pop.append(c2)
                     new_hcvs.append(h2)
@@ -259,12 +272,12 @@ class HAGA:
             fitnesses = np.array(new_fitnesses)
 
             # 4. Generational Elite Local Search (ELS) on top elite individuals
-            if self.enable_els and self.eval_count < self.max_evaluations:
+            if self.enable_els and self.eval_count < population_budget:
                 current_sorted = np.argsort(fitnesses)
                 elite_targets = current_sorted[:min(self.els_elite_count, len(pop))]
 
                 for e_idx in elite_targets:
-                    if self.eval_count >= self.max_evaluations:
+                    if self.eval_count >= population_budget:
                         break
                     refined_chrom, ref_h, ref_s, ref_f = self.elite_local_search(
                         pop[e_idx], hcvs[e_idx], scvs[e_idx], fitnesses[e_idx]
@@ -292,6 +305,29 @@ class HAGA:
                 "h_norm": h_norm,
                 "pc": pc,
                 "pm": pm,
+            })
+
+        # Stage 2: intensify on the best solution found, using the remaining
+        # share of the budget. Same move set, same targeting, but concentrated
+        # on a single trajectory instead of five elites per generation.
+        if self.enable_els and self.eval_count < self.max_evaluations:
+            refined_chrom, ref_h, ref_s, ref_f = self.elite_local_search(
+                best_chrom,
+                best_hcv,
+                best_scv,
+                best_fitness,
+                max_steps=self.max_evaluations,
+            )
+            if ref_f < best_fitness:
+                best_chrom = refined_chrom
+                best_hcv = ref_h
+                best_scv = ref_s
+                best_fitness = ref_f
+            history[-1].update({
+                "evaluations": self.eval_count,
+                "best_hcv": int(best_hcv),
+                "best_scv": int(best_scv),
+                "best_fitness": int(best_fitness),
             })
 
         elapsed = time.time() - start_time
