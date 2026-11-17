@@ -28,8 +28,9 @@ import sys
 sys.path.insert(0, str(ROOT))
 from src.loader import parse_ctt  # noqa: E402
 from src.problem import TimetablingProblem  # noqa: E402
+from src.stats import compute_nemenyi_cd  # noqa: E402
 
-ALGORITHMS = ["Canonical_GA", "Discrete_PSO", "Simulated_Annealing", "HAGA"]
+ALGORITHMS = ["Canonical_GA", "Discrete_PSO", "Simulated_Annealing", "GA_ELS", "HAGA"]
 DUPLICATE = "comp15"
 
 
@@ -102,6 +103,7 @@ def main() -> int:
     # Per-instance medians, all instances (descriptive).
     medians = data.groupby(["instance", "algorithm"]).agg(
         scv_median=("scv", "median"),
+        fitness_median=("fitness", "median"),
         hcv_median=("hcv", "median"),
         feasible=("feasible", "sum"),
         runs=("seed", "count"),
@@ -110,7 +112,7 @@ def main() -> int:
     # Inferential set: 20 unique instances.
     unique = sorted(set(data.instance) - {DUPLICATE})
     pivot = medians[medians.instance.isin(unique)].pivot(
-        index="instance", columns="algorithm", values="scv_median"
+        index="instance", columns="algorithm", values="fitness_median"
     ).loc[unique, algorithms]
     ranks = pivot.rank(axis=1)
     chi2_stat, p_value = friedmanchisquare(*[pivot[a].to_numpy() for a in algorithms])
@@ -122,8 +124,7 @@ def main() -> int:
     iman_davenport = None if abs(denominator) < 1e-12 else (n - 1) * chi2_stat / denominator
 
     # Nemenyi CD.
-    q = {2: 1.960, 3: 2.343, 4: 2.569}
-    cd = {alpha: q[k] * math.sqrt(k * (k + 1) / (6 * n)) for alpha in (0.05,)}
+    cd = {alpha: compute_nemenyi_cd(k, n, alpha) for alpha in (0.05, 0.10)}
 
     # Pairwise rank differences.
     pairs = []
@@ -135,6 +136,7 @@ def main() -> int:
                 "b": b,
                 "rank_diff": round(diff, 3),
                 "significant_05": bool(diff > cd[0.05]),
+            "significant_10": bool(diff > cd[0.10]),
             })
 
     # Per-instance paired Wilcoxon (HAGA vs SA), Holm-corrected.
@@ -143,7 +145,7 @@ def main() -> int:
         raw_p = []
         for instance in unique:
             block = data[(data.instance == instance) & data.algorithm.isin(["HAGA", "Simulated_Annealing"])]
-            wide = block.pivot(index="seed", columns="algorithm", values="scv").dropna()
+            wide = block.pivot(index="seed", columns="algorithm", values="fitness").dropna()
             if len(wide) < 5:
                 continue
             try:
@@ -151,7 +153,10 @@ def main() -> int:
             except ValueError:
                 continue
             diff = float((wide["HAGA"] - wide["Simulated_Annealing"]).median())
-            wilcoxon_rows.append({"instance": instance, "p": float(p), "median_diff": diff})
+            wilcoxon_rows.append({
+                "instance": instance, "p": float(p), "median_diff": diff,
+                "haga_better_seeds": int((wide["HAGA"] < wide["Simulated_Annealing"]).sum()),
+            })
             raw_p.append(float(p))
         if raw_p:
             adjusted = holm(raw_p)
@@ -183,6 +188,7 @@ def main() -> int:
         "iman_davenport": iman_davenport,
         "mean_ranks": {a: float(mean_ranks[a]) for a in algorithms},
         "nemenyi_cd_05": cd[0.05],
+        "nemenyi_cd_10": cd[0.10],
         "pairwise": pairs,
         "wilcoxon_haga_vs_sa": wilcoxon_rows,
         "feasibility": feasibility,
@@ -209,14 +215,19 @@ def main() -> int:
         f"Friedman chi2 = {chi2_stat:.4f}, p = {p_value:.3e}, df = {k - 1}",
         f"Iman-Davenport F = {iman_davenport if iman_davenport is None else round(iman_davenport, 4)}",
         f"Nemenyi CD (alpha=0.05) = {cd[0.05]:.4f}",
+        f"Nemenyi CD (alpha=0.10) = {cd[0.10]:.4f}",
         "",
         "## Pairwise rank differences",
         "",
-        "| A | B | Δ rank | Significant (0.05) |",
-        "|---|---|---|---|",
+        "| A | B | Δ rank | Significant (0.05) | Significant (0.10) |",
+        "|---|---|---|---|---|",
     ]
     for row in pairs:
-        lines.append(f"| {row['a']} | {row['b']} | {row['rank_diff']:.3f} | {'yes' if row['significant_05'] else 'no'} |")
+        lines.append(
+            f"| {row['a']} | {row['b']} | {row['rank_diff']:.3f} | "
+            f"{'yes' if row['significant_05'] else 'no'} | "
+            f"{'yes' if row['significant_10'] else 'no'} |"
+        )
     lines += ["", "## Feasibility", "", "| Algorithm | Feasible | Runs | Rate | 95% Wilson |", "|---|---|---|---|---|"]
     for row in feasibility:
         lines.append(
@@ -224,10 +235,12 @@ def main() -> int:
             f"[{100*row['ci_low']:.1f}, {100*row['ci_high']:.1f}] |"
         )
     if wilcoxon_rows:
-        lines += ["", "## HAGA vs SA, per-instance paired Wilcoxon (Holm)", "", "| Instance | Median Δ SCV | p | p_Holm |", "|---|---|---|---|"]
+        lines += ["", "## HAGA vs SA, per-instance paired Wilcoxon on fitness (Holm)", "",
+                  "| Instance | Median Δ fitness | HAGA better | p | p_Holm |", "|---|---|---|---|---|"]
         for row in wilcoxon_rows:
             lines.append(
-                f"| {row['instance']} | {row['median_diff']:.1f} | {row['p']:.3e} | {row.get('p_holm', float('nan')):.3f} |"
+                f"| {row['instance']} | {row['median_diff']:.1f} | {row.get('haga_better_seeds', 0)}/30 | "
+                f"{row['p']:.3e} | {row.get('p_holm', float('nan')):.3f} |"
             )
     (args.output_dir / "stats_report.md").write_text("\n".join(lines) + "\n")
 
