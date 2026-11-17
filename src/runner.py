@@ -46,6 +46,7 @@ MODES = {
     "ablation": ["Canonical_GA", "GA_APC", "GA_ELS", "GA_ELS_Random", "HAGA"],
     "pilot": ["Canonical_GA", "Simulated_Annealing", "GA_ELS", "HAGA"],
     "haga_only": ["HAGA"],
+    "main5": ["Canonical_GA", "Discrete_PSO", "Simulated_Annealing", "GA_ELS", "HAGA"],
     "saga_comparison": ["Canonical_GA", "HAGA", "SAGA_Reconstructed"],
     "full_comparison": ["Canonical_GA", "Discrete_PSO", "Simulated_Annealing", "HAGA", "SAGA_Reconstructed"],
 }
