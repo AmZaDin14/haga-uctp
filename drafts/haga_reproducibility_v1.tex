@@ -1,0 +1,238 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{microtype}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\graphicspath{{.}{figures/}{../figures/}}
+
+\newcommand{\pending}[1]{\textcolor{red}{[PENDING: #1]}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\title{A Reproducible Fixed-Budget Benchmark of Hybrid Metaheuristics for Curriculum-Based Course Timetabling}
+
+\author{Amri~Reza~Wahyudin
+        and~Rohmat~Indra~Borman%
+\thanks{A. R. Wahyudin and R. I. Borman are with the Faculty of Engineering and Computer Science, Universitas Teknokrat Indonesia, Bandar Lampung 35142, Indonesia (e-mail: amri\_reza\_wahyudin@teknokrat.ac.id).}%
+\thanks{Corresponding author: Amri Reza Wahyudin.}%
+}
+
+\markboth{Journal Submission, Vol.~XX, No.~X, 2026}%
+{Wahyudin and Borman: A Reproducible Fixed-Budget Benchmark for CB-CTT}
+
+\maketitle
+
+\begin{abstract}
+Comparisons of metaheuristics for curriculum-based course timetabling (CB-CTT) are difficult to reproduce: base parameters differ between ablation cells, budgets are defined in wall-clock time, seeds are pooled as independent samples, duplicate benchmark instances are included, and the distance to published best-known solutions is rarely reported. This paper contributes a benchmark contract and a reference implementation that make such comparisons auditable. The contract specifies verified instance hashes, exact evaluation accounting, a resumable run store that preserves every chromosome, a fixed seed policy, duplicate-instance handling, and a statistical protocol based on per-instance paired tests with multiplicity control. We instantiate the contract on the 21 ITC~2007 CB-CTT instances with a five-arm comparison and a controlled component ablation. The case study illustrates the value of the contract: it shows that violation-directed elite local search is the component responsible for feasibility, that a random-targeting control with an identical budget fails to reproduce the effect (10/10 versus 0/10 feasible runs on \code{comp07}), and that diversity-driven parameter control has no measurable effect at the tested base rate; because the adaptive arm's realised mean crossover rate (0.706) differs from the static 0.80, a mean-matched control is reported. All artefacts---manifests, per-run chromosomes and analysis scripts---are released so that every table can be regenerated without re-running the solvers. Across the full grid, simulated annealing attains the best median SCV among feasible runs (684.5) and the best mean rank (1.200), while HAGA and GA\_ELS obtain feasible schedules far more often (77.3\% and 79.2\% versus 59.0\%); the Nemenyi test does not separate the three at $\alpha=0.05$, and the median gap to best-known solutions is 17.7$\times$, 22.3$\times$ and 22.5$\times$ respectively.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Benchmarking, reproducibility, curriculum-based course timetabling, metaheuristics, controlled ablation.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Empirical comparisons in metaheuristic optimization are easy to run and hard to trust. A typical CB-CTT paper reports that a hybrid method outperforms several baselines, but the comparison often conflates several changes: the hybrid adds a local search \emph{and} changes the base crossover rate; the budget is a wall-clock timeout that depends on the machine; the seeds are pooled as if they were independent instances; and a duplicate instance is counted twice. Even when the code is available, reproducing a table requires guessing which of these choices produced the reported numbers.
+
+This paper treats reproducibility as an engineering contract rather than a statement of intent. We define what a comparison must record, implement it in a run store that enforces the record, and demonstrate the contract on a five-arm CB-CTT study with a controlled ablation.
+
+\subsection{Contributions}
+\begin{enumerate}
+    \item A \textbf{benchmark contract} for CB-CTT comparisons: verified instance hashes, exact evaluation accounting, per-run chromosome storage, a resumable experiment manifest, and a fixed seed policy.
+    \item A \textbf{statistical protocol} that respects the nesting of seeds within instances, excludes structural duplicates, corrects for multiplicity, and reports critical differences at two significance levels.
+    \item A \textbf{case study} that demonstrates the contract's diagnostic value: a component ablation with equal base parameters and a random-targeting control, which isolates the mechanism responsible for feasibility and falsifies a commonly assumed one.
+    \item A \textbf{released artefact}: manifests, chromosomes and analysis scripts sufficient to regenerate every table without executing the solvers again.
+\end{enumerate}
+
+The case study is deliberately not a performance claim. Its purpose is to show that a disciplined protocol changes the conclusion: a mechanism that looks essential in a loosely controlled comparison (adaptive parameter control) disappears under equal base parameters, while a mechanism that is usually bundled with others (the direction of local search) turns out to be the causal ingredient.
+
+\section{Related Work}
+\subsection{CB-CTT and its benchmarks}
+The ITC~2007 formulation assigns lectures to rooms and timeslots subject to room occupancy, teacher, curriculum and availability constraints, and penalizes capacity excess, minimum-working-day shortfalls, room instability and isolated curriculum lectures~\cite{mccollum2009setting}. The data format and instance suite were documented by Bonutti et al.~\cite{bonutti2012benchmarking}; best-known results are consolidated periodically~\cite{ceschia2022educational}. Surveys of educational timetabling emphasize that comparisons are often not directly comparable because of formulation variants and budget differences~\cite{bettinelli2015survey,chen2021survey}.
+
+\subsection{Reproducibility in metaheuristic comparisons}
+Checklists for reproducible optimization experiments recommend reporting hardware, budget definition, seeds, and the exact code version. In practice, CB-CTT papers vary in all four. Two specific confounds recur: (i) an ablation changes the base parameters together with the mechanism under test, and (ii) a local-search component changes the effective budget allocation, so the comparison measures budget reallocation rather than the operator. Our contract addresses both explicitly.
+
+\subsection{Statistical practice}
+Dem\v{s}ar's recommendations for comparing multiple classifiers over multiple datasets~\cite{demsar2006statistical} transfer directly: use the instance as the statistical unit, apply a Friedman omnibus test, and use a Nemenyi critical difference for post-hoc comparisons. The recommendations also warn against pooling repeated measures as independent samples, which is precisely what happens when seeds are treated as instances. We follow the protocol and add per-instance paired tests as secondary evidence.
+
+\section{The Benchmark Contract}
+\label{sec:contract}
+\subsection{Instances}
+All 21 ITC~2007 CB-CTT files are used. Their SHA-256 hashes match a published mirror, so the input is auditable. \code{comp15} is structurally identical to \code{comp03} (same courses, rooms, curricula and unavailabilities) and produces identical table rows; it is retained for descriptive completeness but excluded from every inferential test, leaving $N=20$ unique instances. Table~\ref{tab:instances} lists sizes and best-known upper bounds.
+
+\begin{table}[!t]
+\caption{Instances, sizes and best-known upper bounds~\cite{ceschia2022educational}. $^\dagger$Duplicate of \code{comp03}; excluded from inference.}
+\label{tab:instances}
+\centering
+\small
+\begin{tabular}{l r r r}
+\toprule
+Instance & Lectures & Constraints & Best known \\
+\midrule
+\code{comp01} & 160 & 53 & 5 \\
+\code{comp02} & 283 & 513 & 24 \\
+\code{comp03} & 251 & 382 & 64 \\
+\code{comp04} & 286 & 396 & 35 \\
+\code{comp05} & 152 & 771 & 284 \\
+\code{comp06} & 361 & 632 & 27 \\
+\code{comp07} & 434 & 667 & 6 \\
+\code{comp08} & 324 & 478 & 37 \\
+\code{comp09} & 279 & 405 & 96 \\
+\code{comp10} & 370 & 694 & 4 \\
+\code{comp11} & 162 & 94 & 0 \\
+\code{comp12} & 218 & 1{,}368 & 294 \\
+\code{comp13} & 308 & 468 & 59 \\
+\code{comp14} & 275 & 486 & 51 \\
+\code{comp15}$^\dagger$ & 251 & 382 & 62 \\
+\code{comp16} & 366 & 518 & 18 \\
+\code{comp17} & 339 & 548 & 56 \\
+\code{comp18} & 138 & 594 & 61 \\
+\code{comp19} & 277 & 475 & 57 \\
+\code{comp20} & 390 & 691 & 4 \\
+\code{comp21} & 327 & 463 & 74 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Constraint semantics}
+Hard constraints are room occupancy, teacher conflicts, curriculum conflicts and unavailability. Room-capacity excess is a soft penalty of one point per student above capacity, following the reference formulation; minimum working days costs 5 points per missing day, room stability 1 point per additional room, and curriculum compactness 2 points per isolated lecture. A schedule is feasible when the hard-violation count is zero. This classification is stated explicitly because a different classification (capacity as hard) makes \code{comp01} infeasible and silently changes the meaning of every table.
+
+\subsection{Budget and seeds}
+Every arm receives exactly 50{,}000 objective evaluations, counted for offspring and local-search steps alike. The budget is consumed by a single counter shared by the population phase and the local search. Seeds are 101--130, identical across arms and instances, so that per-instance paired tests are possible. Wall-clock runtime is recorded but never used as the budget.
+
+\subsection{Run store and manifest}
+Each experiment writes a manifest containing the instance hashes, source-file hashes, dependency versions, host metadata and the git revision. Each completed run stores its full chromosome, summary and monotone best-so-far history; a completed run cannot be overwritten, and re-invoking the same experiment identifier executes only the missing cells. The store rejects a manifest that does not match the current code and data, which is what makes a resumed run trustworthy.
+
+\subsection{Statistical protocol}
+The instance is the statistical unit. Medians across 30 seeds form one observation per instance and arm. We report the Friedman omnibus test with the Iman--Davenport correction, Kendall's $W$, Nemenyi critical differences at $\alpha=0.05$ and $0.10$, per-instance paired Wilcoxon tests with Holm correction, and Wilson intervals for feasibility. Duplicate instances are excluded, and seeds are never pooled as independent observations.
+
+\section{Case Study: A Five-Arm Comparison and a Controlled Ablation}
+\subsection{Protocol}
+The five arms are a canonical GA ($P_c=0.80$, $P_m=0.05$), a deliberately naive discrete PSO (no velocity; each gene is copied from personal best, global best or a random slot with probabilities 0.40/0.40/0.20), simulated annealing ($T_0=100$, cooling 0.995, 50 steps per temperature), a GA with violation-directed elite local search (GA\_ELS), and the same hybrid with diversity-driven parameter control (HAGA). The ablation adds GA\_APC (parameter control without local search) and GA\_ELS\_Random (local search with random lecture selection, identical budget and moves), on \code{comp01}, \code{comp07} and \code{comp12} with 10 seeds.
+
+\subsection{Main comparison}
+Table~\ref{tab:main} reports the five-arm comparison. Feasibility, conditional SCV and runtime are reported separately, because a pooled median mixes feasible and infeasible runs and is not comparable across arms.
+
+\begin{table*}[!t]
+\caption{Main comparison (21 instances, 30 seeds, 50{,}000 evaluations). SCV is conditional on feasibility; the gap is the median ratio to the best-known value in Table~\ref{tab:instances}. \code{comp11} has best-known $0$, so its ratio is undefined and excluded from the median.}
+\label{tab:main}
+\centering
+\small
+\begin{tabular}{l c c c c}
+\toprule
+Arm & Feasible runs & Median SCV (feasible) & Median runtime & Gap to best-known \\
+\midrule
+Canonical GA          & 0/630 (0.0\%) & -- & 487.4 s & -- \\
+Discrete PSO (naive)  & 0/630 (0.0\%) & -- & 497.9 s & -- \\
+Simulated annealing   & 372/630 (59.0\%) & \textbf{684.5} & 494.1 s & \textbf{17.7}$\times$ \\
+GA\_ELS               & \textbf{499/630 (79.2\%)} & 1{,}054.0 & 540.6 s & 22.5$\times$ \\
+HAGA                  & 487/630 (77.3\%) & 1{,}003.0 & 509.8 s & 22.3$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Controlled ablation}
+Table~\ref{tab:ablation} reports the ablation. The protocol's diagnostic value is visible in three results. First, arms without local search never reach feasibility, while arms with it solve 10/10 seeds on \code{comp01}. Second, the direction of local search is causal: with identical budget and moves, directed targeting solves 10/10 seeds on \code{comp07} and random targeting solves 0/10. Third, parameter control adds no measurable effect at the tested base rate: GA\_ELS and HAGA differ by 2.6\% and 2.0\% on the two feasible instances, in opposite directions.
+
+\begin{table}[!t]
+\caption{Controlled ablation (10 seeds per cell, 50{,}000 evaluations).}
+\label{tab:ablation}
+\centering
+\small
+\begin{tabular}{ll c c}
+\toprule
+Instance & Arm & Feasible & Median SCV \\
+\midrule
+\multirow{5}{*}{\code{comp01}}
+& Canonical GA      & 0/10 & -- \\
+& GA\_APC           & 0/10 & -- \\
+& GA\_ELS           & 10/10 & 249.5 \\
+& GA\_ELS\_Random   & 10/10 & 307.0 \\
+& HAGA              & 10/10 & 256.0 \\
+\midrule
+\multirow{5}{*}{\code{comp07}}
+& Canonical GA      & 0/10 & -- \\
+& GA\_APC           & 0/10 & -- \\
+& GA\_ELS           & 10/10 & 2{,}462.0 \\
+& GA\_ELS\_Random   & 0/10 & -- \\
+& HAGA              & 8/10 & 2{,}413.0 \\
+\midrule
+\multirow{5}{*}{\code{comp12}}
+& Canonical GA      & 0/10 & -- \\
+& GA\_APC           & 0/10 & -- \\
+& GA\_ELS           & 2/10 & 1{,}942.5 \\
+& GA\_ELS\_Random   & 0/10 & -- \\
+& HAGA              & 1/10 & 1{,}473.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Sensitivity under the contract}
+Table~\ref{tab:sensitivity} reports a seven-cell sensitivity analysis of the parameter-control law on \code{comp01}. Feasibility is reported separately and conditional SCV is used instead of a pooled median, which would be bimodal. All cells reach 10/10 feasibility; conditional SCV spans 192.5--332.5 with overlapping intervals. The table is reported as robustness evidence, not as a tuning exercise: the pre-registered baseline is retained for the main comparison.
+
+\begin{table}[!t]
+\caption{Parameter sensitivity on \code{comp01} (10 seeds, 50{,}000 evaluations), stratified by feasibility.}
+\label{tab:sensitivity}
+\centering
+\small
+\begin{tabular}{l c c c}
+\toprule
+Configuration & Feasible & Median SCV & SCV IQR \\
+\midrule
+Baseline ($N=50$, $P_{c,\min}=0.40$, $P_{m,\max}=0.10$) & 10/10 & 256.0 & 66.8 \\
+$P_{c,\min}=0.30$ & 10/10 & 200.0 & 57.2 \\
+$P_{c,\min}=0.55$ & 10/10 & 275.5 & 65.2 \\
+$P_{m,\max}=0.05$ & 10/10 & 271.0 & 45.8 \\
+$P_{m,\max}=0.20$ & 10/10 & 249.5 & 25.2 \\
+$N=30$ & 10/10 & 192.5 & 50.0 \\
+$N=100$ & 10/10 & 332.5 & 77.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Lessons and Checklist}
+The case study suggests seven rules that generalize beyond CB-CTT:
+\begin{enumerate}
+    \item Report base parameters in every ablation cell; otherwise the mechanism and the parameter change are confounded.
+    \item Include a control that keeps the budget and the move set but removes the mechanism's direction, especially for local search.
+    \item Define the budget in objective evaluations and report wall-clock separately.
+    \item Never pool seeds as independent samples; use the instance as the unit and report paired tests as secondary evidence.
+    \item Detect structural duplicates before inference; identical parsed problems will produce identical rows.
+    \item Report the distance to published best-known values, even when the method is not competitive.
+    \item Archive chromosomes and manifests so that a corrected metric can be re-scored without re-running the solvers.
+\end{enumerate}
+
+\section{Threats to Validity}
+\textbf{Construct validity.} Room capacity is soft, following the reference formulation; results are not comparable to studies that treat it as hard. The scalar fitness uses $W=100{,}000$, which is lexicographic for these instances but not derived per instance.
+
+\textbf{Internal validity.} Budget parity is in evaluations, not time. Runtime is implementation-dependent and is reported without inference.
+
+\textbf{External validity.} The contract is demonstrated on one problem family and one benchmark suite. \code{comp12} remains hard for every arm; conclusions about feasibility should not be generalized to instances with different constraint density.
+
+\textbf{Conclusion validity.} The duplicate instance is excluded, seeds are nested, and per-instance tests are Holm-corrected. The Nemenyi critical difference is reported at two $\alpha$ levels because adjacent-rank conclusions are sensitive to that choice.
+
+\section{Conclusion}
+We presented a benchmark contract for CB-CTT comparisons and demonstrated it on a five-arm study with a controlled ablation. The contract makes confounds visible: in the case study, it shows that the direction of local search, not the presence of adaptive parameter control, is the mechanism that produces feasibility. The artefacts are released so that the tables can be regenerated without re-running the solvers, and the checklist is intended to transfer to other constrained-optimization benchmarks.
+
+\section*{Funding}
+\pending{funding statement}
+
+\section*{Conflict of Interest}
+The authors declare no conflict of interest.
+
+\section*{Data Availability}
+Instance files, manifests, per-run chromosomes and analysis scripts are archived with the paper; the aggregation and statistics can be regenerated from the stored runs.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

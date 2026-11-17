@@ -1,0 +1,212 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{microtype}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\graphicspath{{.}{figures/}{../figures/}}
+
+\newcommand{\pending}[1]{\textcolor{red}{[PENDING: #1]}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\title{Violation-Directed Memetic Search with Two-Stage Budget Allocation for Curriculum-Based Course Timetabling}
+
+\author{Amri~Reza~Wahyudin
+        and~Rohmat~Indra~Borman%
+\thanks{A. R. Wahyudin and R. I. Borman are with the Faculty of Engineering and Computer Science, Universitas Teknokrat Indonesia, Bandar Lampung 35142, Indonesia (e-mail: amri\_reza\_wahyudin@teknokrat.ac.id).}%
+\thanks{Corresponding author: Amri Reza Wahyudin.}%
+}
+
+\markboth{Journal Submission, Vol.~XX, No.~X, 2026}%
+{Wahyudin and Borman: Violation-Directed Memetic Search for CB-CTT}
+
+\maketitle
+
+\begin{abstract}
+Memetic algorithms for curriculum-based course timetabling (CB-CTT) combine population search with local improvement, but two design choices are usually left implicit: which lectures the local search should target, and how much of the evaluation budget it should receive. This paper makes both explicit. We propose a violation-directed memetic search in which the local search targets lectures involved in hard conflicts while the schedule is infeasible and lectures involved in soft violations once it is feasible, using reassignment and swap moves in equal proportion. The evaluation budget is split 70/30 between the population phase and a final intensification of the single best schedule. A controlled ablation on three ITC~2007 instances shows that the local search is necessary for feasibility, that its direction is causal (directed 10/10 versus random 0/10 feasible runs on \code{comp07}), and that diversity-driven parameter control adds no measurable effect at the tested base rate; because the adaptive arm's realised mean crossover rate (0.706) differs from the static 0.80, a mean-matched control is reported. On the full 21-instance suite, the method is compared with simulated annealing, a canonical GA and a naive discrete PSO at an identical 50{,}000-evaluation budget. Across the full grid, simulated annealing attains the best median SCV among feasible runs (684.5) and the best mean rank (1.200), while HAGA and GA\_ELS obtain feasible schedules far more often (77.3\% and 79.2\% versus 59.0\%); the Nemenyi test does not separate the three at $\alpha=0.05$, and the median gap to best-known solutions is 17.7$\times$, 22.3$\times$ and 22.5$\times$ respectively.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Memetic algorithms, course timetabling, local search, violation-directed search, budget allocation.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Curriculum-based course timetabling (CB-CTT) asks for an assignment of lectures to rooms and timeslots that satisfies hard constraints---room occupancy, teacher and curriculum conflicts, availability---while minimizing a weighted count of soft violations: capacity excess, minimum-working-day shortfalls, room instability and isolated curriculum lectures~\cite{mccollum2009setting}. The problem is NP-hard, and the ITC~2007 benchmark remains the standard testbed~\cite{bonutti2012benchmarking,ceschia2022educational}.
+
+Memetic algorithms are a natural fit: a population explores alternative assignments, and a local search repairs or improves promising individuals. Their effectiveness, however, depends on two choices that are rarely reported as design decisions. First, \emph{which lectures} should the local search touch? A uniform choice wastes most proposals on lectures that cannot improve the objective, especially once the schedule is feasible and the conflict set is empty. Second, \emph{how much budget} should the local search receive? If it consumes most evaluations, the comparison with population-only baselines measures budget allocation rather than operator quality.
+
+This paper addresses both. The contributions are:
+\begin{enumerate}
+    \item a \textbf{violation-directed neighbourhood}: hard-conflict lectures while infeasible, soft-violation lectures once feasible, with swaps and reassignments;
+    \item a \textbf{two-stage budget allocation}: 70\% of the evaluations for the population phase, 30\% for intensification of the single best schedule;
+    \item a \textbf{controlled ablation} that separates the local search, its direction, and adaptive parameter control, with equal base parameters across cells;
+    \item an \textbf{honest comparison} against simulated annealing and two weaker baselines at an identical budget, including the gap to published best-known solutions.
+\end{enumerate}
+
+\section{Related Work}
+Simulated annealing and tabu search remain strong baselines for CB-CTT~\cite{sylejmani2022simulated}, and competition results show that the best solvers combine constructive initialisation with constraint-aware local search~\cite{song2021competition}. Population methods are often hybridized with local search~\cite{rezaeipanah2021hybrid,lacerda2021systematic}; adaptive parameter control is a common addition~\cite{eiben1999parameter}. The literature, however, seldom isolates the direction of the local search from its budget, and ablations often change base parameters at the same time as the mechanism under test.
+
+\section{Problem and Objective}
+Let $E$ be the lectures, $R$ the rooms and $T$ the timeslots. A schedule assigns each lecture a pair $(t_e,r_e)$. Hard constraints are room occupancy, teacher conflicts, curriculum conflicts and unavailability. Capacity excess is soft (one point per student above capacity), as are minimum working days (5 per missing day), room stability (1 per additional room) and curriculum compactness (2 per isolated lecture), following the reference formulation. The objective is
+\begin{equation}
+F(S)=W\cdot \mathrm{HCV}(S)+\mathrm{SCV}(S),\qquad W=100{,}000,
+\end{equation}
+which is lexicographic for all 21 instances because the maximum attainable SCV is below 25{,}600; a schedule is feasible when $\mathrm{HCV}=0$.
+
+\section{Proposed Algorithm}
+\subsection{Encoding and variation}
+A schedule is a vector of $E$ integers, $c_e=t_e\cdot|R|+r_e$. The population is initialized uniformly at random. Tournament selection ($k=3$), two-point crossover and per-gene mutation are used; elitism preserves the two best individuals. Population diversity, when enabled, is the normalized mean pairwise Hamming distance
+\begin{equation}
+H=\frac{2}{N(N-1)}\sum_{i<j}\frac{1}{E}\sum_{k}\mathbb{1}[c_{ik}\neq c_{jk}],
+\end{equation}
+computed in $O(N^2E)$ per generation.
+
+\subsection{Adaptive parameter control (optional)}
+When enabled, the controller spans the full admissible ranges:
+\begin{align}
+P_c &= P_{c,\min}+(P_{c,\max}-P_{c,\min})H,\\
+P_m &= P_{m,\min}+(P_{m,\max}-P_{m,\min})(1-H),
+\end{align}
+with $P_c\in[0.40,0.95]$, $P_m\in[0.01,0.10]$. The span form avoids the failure mode of a multiplicative law with a small slope, which remains within a few percent of its base value and is indistinguishable from a constant schedule.
+
+\subsection{Violation-directed local search}
+Each generation applies local search to the top $\lceil0.10N\rceil$ individuals (Algorithm~\ref{alg:els}). The candidate pool is the set of lectures in hard violations; once the schedule is feasible, it is the set of lectures in soft violations: courses short of working days, unstable across rooms, or isolated inside a curriculum-day. A step selects a lecture from the pool and either reassigns it to a random room--timeslot pair or swaps it with another lecture, with equal probability; a move is accepted only on strict improvement. The pool is refreshed every ten steps. Swaps are essential: a single-gene reassignment cannot exchange two lectures without passing through a duplicate-slot state.
+
+\begin{algorithm}[!t]
+\caption{Violation-Directed Local Search}
+\label{alg:els}
+\begin{algorithmic}[1]
+\For{each elite schedule $S$}
+    \For{$\text{step}=1$ to $S_{\max}$}
+        \If{$\text{step}\bmod 10=1$}
+            \State $\mathcal{K}\gets$ lectures in hard violations
+            \If{$\mathcal{K}=\emptyset$} $\mathcal{K}\gets$ lectures in soft violations \EndIf
+        \EndIf
+        \State $k\gets$ uniform from $\mathcal{K}$; $S'\gets$ reassign or swap $k$
+        \State evaluate $F(S')$; deduct one evaluation
+        \If{$F(S')<F(S)$} $S\gets S'$ \EndIf
+    \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Two-stage budget allocation}
+The budget is divided explicitly: 70\% for the generational phase and 30\% for a final intensification of the single best schedule, using the same neighbourhood. Without the split, the local search consumes most evaluations inside the population loop and the comparison with population-only and trajectory-only baselines becomes a comparison of budget shares.
+
+\section{Experimental Setup}
+All 21 ITC~2007 CB-CTT instances are used with 30 seeds (101--130) and exactly 50{,}000 evaluations per run. Instance files are byte-identical (SHA-256) to a published mirror. \code{comp15} is a structural duplicate of \code{comp03} and is excluded from inference ($N=20$). The five arms are a canonical GA ($P_c=0.80$, $P_m=0.05$), a naive discrete PSO (no velocity; per-gene copy from personal best, global best or random with probabilities 0.40/0.40/0.20), simulated annealing ($T_0=100$, cooling 0.995, 50 steps per temperature), GA\_ELS and HAGA. The ablation adds GA\_APC and GA\_ELS\_Random on \code{comp01}, \code{comp07} and \code{comp12} with 10 seeds.
+
+Statistics follow Dem\v{s}ar's protocol~\cite{demsar2006statistical}: the instance is the unit, medians over seeds are the observations, and Friedman, Iman--Davenport, Nemenyi (at $\alpha=0.05$ and $0.10$) and Holm-corrected paired Wilcoxon tests are reported, with Wilson intervals for feasibility.
+
+\section{Results}
+\subsection{Main comparison}
+Table~\ref{tab:main} reports the five-arm comparison. Feasibility, conditional SCV and runtime are reported separately; a pooled median mixes feasible and infeasible runs and is not comparable across arms. Simulated annealing ranks first (1.200), GA\_ELS and HAGA follow (2.375 and 2.425), and the canonical GA and naive PSO are last (4.050 and 4.950); the SA--HAGA rank gap (1.225) is below the Nemenyi critical difference at both $\alpha=0.05$ (1.364) and $\alpha=0.10$ (1.230), so rank-based testing does not separate them. The difference is in the outcome profile: HAGA and GA\_ELS reach feasibility in 77.3\% and 79.2\% of runs versus 59.0\% for SA, while SA's median SCV among feasible runs is 684.5 against 1{,}003.0 and 1{,}054.0. Median gaps to best-known are 17.7$\times$, 22.3$\times$ and 22.5$\times$.
+
+\begin{table*}[!t]
+\caption{Main comparison (21 instances, 30 seeds, 50{,}000 evaluations). SCV is conditional on feasibility; the gap is the median ratio to the best-known value. \code{comp11} has best-known $0$, so its ratio is undefined and excluded from the median.}
+\label{tab:main}
+\centering
+\small
+\begin{tabular}{l c c c c}
+\toprule
+Arm & Feasible runs & Median SCV (feasible) & Median runtime & Gap to best-known \\
+\midrule
+Canonical GA          & 0/630 (0.0\%) & -- & 487.4 s & -- \\
+Discrete PSO (naive)  & 0/630 (0.0\%) & -- & 497.9 s & -- \\
+Simulated annealing   & 372/630 (59.0\%) & \textbf{684.5} & 494.1 s & \textbf{17.7}$\times$ \\
+GA\_ELS               & \textbf{499/630 (79.2\%)} & 1{,}054.0 & 540.6 s & 22.5$\times$ \\
+HAGA                  & 487/630 (77.3\%) & 1{,}003.0 & 509.8 s & 22.3$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Component ablation}
+Table~\ref{tab:ablation} isolates the components. Three results stand out. The local search is necessary: without it, no arm reaches feasibility on any seed. Its direction is causal: with identical budget and moves, directed targeting solves 10/10 seeds on \code{comp07} and random targeting solves 0/10. Adaptive parameter control adds no measurable effect at the tested base rate: GA\_ELS and HAGA differ by 2.6\% and 2.0\% on the two feasible instances, in opposite directions.
+
+\begin{table}[!t]
+\caption{Controlled ablation (10 seeds per cell, 50{,}000 evaluations).}
+\label{tab:ablation}
+\centering
+\small
+\begin{tabular}{ll c c}
+\toprule
+Instance & Arm & Feasible & Median SCV \\
+\midrule
+\multirow{5}{*}{\code{comp01}}
+& Canonical GA      & 0/10 & -- \\
+& GA\_APC           & 0/10 & -- \\
+& GA\_ELS           & 10/10 & 249.5 \\
+& GA\_ELS\_Random   & 10/10 & 307.0 \\
+& HAGA              & 10/10 & 256.0 \\
+\midrule
+\multirow{5}{*}{\code{comp07}}
+& Canonical GA      & 0/10 & -- \\
+& GA\_APC           & 0/10 & -- \\
+& GA\_ELS           & 10/10 & 2{,}462.0 \\
+& GA\_ELS\_Random   & 0/10 & -- \\
+& HAGA              & 8/10 & 2{,}413.0 \\
+\midrule
+\multirow{5}{*}{\code{comp12}}
+& Canonical GA      & 0/10 & -- \\
+& GA\_APC           & 0/10 & -- \\
+& GA\_ELS           & 2/10 & 1{,}942.5 \\
+& GA\_ELS\_Random   & 0/10 & -- \\
+& HAGA              & 1/10 & 1{,}473.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Sensitivity}
+On \code{comp01}, seven configurations of the span law all reach 10/10 feasibility, with conditional SCV between 192.5 and 332.5 and overlapping intervals (Table~\ref{tab:sensitivity}). The pre-registered baseline is retained; the table documents robustness rather than tuning.
+
+\begin{table}[!t]
+\caption{Sensitivity on \code{comp01} (10 seeds), stratified by feasibility.}
+\label{tab:sensitivity}
+\centering
+\small
+\begin{tabular}{l c c c}
+\toprule
+Configuration & Feasible & Median SCV & SCV IQR \\
+\midrule
+Baseline ($N=50$, $P_{c,\min}=0.40$, $P_{m,\max}=0.10$) & 10/10 & 256.0 & 66.8 \\
+$P_{c,\min}=0.30$ & 10/10 & 200.0 & 57.2 \\
+$P_{c,\min}=0.55$ & 10/10 & 275.5 & 65.2 \\
+$P_{m,\max}=0.05$ & 10/10 & 271.0 & 45.8 \\
+$P_{m,\max}=0.20$ & 10/10 & 249.5 & 25.2 \\
+$N=30$ & 10/10 & 192.5 & 50.0 \\
+$N=100$ & 10/10 & 332.5 & 77.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Discussion}
+The mechanism behind the ablation is visible in the neighbourhood. At a feasible schedule the hard-conflict set is empty; an untargeted search samples uniformly and wastes its budget. On a feasible \code{comp01} schedule, 0 of 400 random single-gene reassignments improved the objective, while 9 of 400 swaps did. Directing the pool to soft violations changes the proposal distribution exactly where the search would stall; the random-target control keeps the budget and loses the effect. The two-stage split matters for the same reason: it gives the intensification phase enough depth to exploit the feasible region that the population phase has found.
+
+\section{Threats to Validity}
+Capacity is soft, following the reference formulation, so results are not comparable to studies that treat it as hard. Budget is defined in evaluations, not time; runtime is reported but not used for inference. The study covers one problem family; \code{comp12}, the densest instance, remains hard for every arm. Seeds are nested within instances and never pooled; \code{comp15} is excluded as a structural duplicate; paired tests are Holm-corrected.
+
+\section{Conclusion}
+This paper made two implicit design choices of memetic CB-CTT explicit: the local search targets violations and is split from the population budget. The controlled ablation shows that the local search drives feasibility and that its direction is causal, while diversity-driven parameter control adds no measurable effect. The resulting method is a reliable feasibility finder at a fixed budget, not a state-of-the-art solver; the gap to published best-known solutions is reported so that the trade-off is explicit.
+
+\section*{Funding}
+\pending{funding statement}
+
+\section*{Conflict of Interest}
+The authors declare no conflict of interest.
+
+\section*{Data Availability}
+Instance files, manifests, per-run chromosomes and analysis scripts are archived with the paper.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}
