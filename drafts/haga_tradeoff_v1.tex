@@ -1,0 +1,267 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{microtype}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\graphicspath{{.}{figures/}{../figures/}}
+
+\newcommand{\pending}[1]{\textcolor{red}{[PENDING: #1]}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\title{Reliability versus Solution Quality: A Controlled Study of Fixed-Budget Metaheuristics for Curriculum-Based Course Timetabling}
+
+\author{Amri~Reza~Wahyudin
+        and~Rohmat~Indra~Borman%
+\thanks{A. R. Wahyudin and R. I. Borman are with the Faculty of Engineering and Computer Science, Universitas Teknokrat Indonesia, Bandar Lampung 35142, Indonesia (e-mail: amri\_reza\_wahyudin@teknokrat.ac.id).}%
+\thanks{Corresponding author: Amri Reza Wahyudin.}%
+}
+
+\markboth{Journal Submission, Vol.~XX, No.~X, 2026}%
+{Wahyudin and Borman: Reliability versus Solution Quality in CB-CTT}
+
+\maketitle
+
+\begin{abstract}
+Metaheuristics for curriculum-based course timetabling (CB-CTT) are usually compared on solution quality alone, but at a fixed evaluation budget the more informative question is the trade-off between two outcomes: how often a method finds a feasible schedule at all, and how good that schedule is when it does. This paper reports a controlled, fully reproducible study of five arms---a canonical GA, a deliberately naive discrete PSO, simulated annealing, a GA with violation-directed elite local search (GA\_ELS), and the same hybrid with diversity-driven parameter control (HAGA)---over 21 ITC~2007 instances, 30 seeds and exactly 50{,}000 evaluations per run (3{,}150 runs). On the search objective, simulated annealing ranks first (1.700), with GA\_ELS (2.075) and HAGA (2.225) close behind and not separable from it by the Nemenyi test at $\alpha=0.05$ or $0.10$. The arms differ sharply in their outcome profiles: GA\_ELS and HAGA find feasible schedules in 79.2\% and 77.3\% of runs versus 59.0\% for SA, while SA produces the best soft-constraint penalty when it succeeds (median SCV 684.5 versus 1{,}003.0 and 1{,}054.0). A component ablation shows that the local search is necessary for feasibility, that its direction is causal (directed targeting 10/10 versus random targeting 0/10 on \code{comp07}), and that parameter control has no median effect at a mean-matched operating point (254.5 versus 256.0 SCV on identical seeds). Holm-corrected per-instance paired tests place HAGA significantly ahead of SA on one instance (\code{comp11}) and significantly behind on four (\code{comp04}, \code{comp08}, \code{comp13}, \code{comp14}); the remaining fifteen instances do not separate. The median gap to published best-known solutions is 17.7$\times$ for SA and 22.3--22.5$\times$ for the ELS arms at comparable wall-clock time, which locates this work as a mechanism study rather than a state-of-the-art result.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Curriculum-based course timetabling, metaheuristics, evaluation budget, local search, controlled ablation, reproducibility.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Curriculum-based course timetabling (CB-CTT) is the problem of assigning lectures to rooms and timeslots subject to room occupancy, teacher, curriculum and availability constraints, while minimizing a weighted sum of soft penalties (capacity excess, minimum working days, room instability, curriculum compactness)~\cite{mccollum2009setting}. The ITC~2007 benchmark remains the standard testbed~\cite{bonutti2012benchmarking,ceschia2022educational}, and metaheuristics---simulated annealing, tabu search, hybrid evolutionary methods---remain the dominant solvers~\cite{bettinelli2015survey,sylejmani2022simulated,rezaeipanah2021hybrid}.
+
+Two properties of these comparisons are usually conflated. The first is \emph{reliability}: under a fixed evaluation budget, a method that reaches feasibility in 59\% of runs and a method that reaches it in 79\% of runs are not equivalent, even if the second produces worse soft penalties when it succeeds. The second is \emph{component attribution}: hybrids bundle adaptive parameter control, local search and repair operators, and reported gains are rarely traced to a single mechanism, because ablations change base parameters and budget shares together with the mechanism under test~\cite{eiben1999parameter}.
+
+This paper addresses both. Its contributions are:
+\begin{enumerate}
+    \item a \textbf{reliability--quality decomposition} of the comparison: feasibility rate, conditional soft-constraint penalty, and rank on the actual search objective are reported separately;
+    \item a \textbf{controlled component ablation} with equal base parameters and a random-targeting control, which isolates the direction of the local search from its budget;
+    \item a \textbf{mean-matched parameter control} that closes the operating-point confound in the adaptivity comparison;
+    \item a \textbf{fully reproducible protocol}: verified instance hashes, exact evaluation accounting, per-run chromosome storage, resumable experiments, duplicate-instance exclusion, and multiplicity-corrected paired inference.
+\end{enumerate}
+
+The results are deliberately reported without a superiority claim. The headline is a trade-off: violation-directed local search buys reliability, simulated annealing buys quality conditional on feasibility, and adaptive parameter control buys neither.
+
+\section{Related Work}
+The ITC~2007 formulation and dataset are documented by McCollum et al.~\cite{mccollum2009setting} and Bonutti et al.~\cite{bonutti2012benchmarking}; best-known results are consolidated in the survey of Ceschia et al.~\cite{ceschia2022educational}. Surveys of educational timetabling note that comparisons across papers are often not directly comparable because of formulation variants, budget definitions and unstated implementation details~\cite{bettinelli2015survey,chen2021survey}. Dem\v{s}ar's protocol for comparing algorithms over multiple datasets~\cite{demsar2006statistical} applies directly: the instance is the statistical unit, seeds are nested repetitions and must not be pooled, and post-hoc comparisons need multiplicity control. Adaptive parameter control has a long history in evolutionary computation~\cite{eiben1999parameter,goldberg1989genetic}; its evaluation is confounded unless the control law is compared against a static arm with matched base rates, which we do in Section~\ref{sec:matched}.
+
+\section{Problem and Benchmark}
+\label{sec:problem}
+A schedule assigns each lecture $e\in E$ a room--timeslot pair $(t_e,r_e)$. Hard constraints are room occupancy, teacher conflicts, curriculum conflicts and unavailability. Following the reference formulation, room-capacity excess is soft (one point per student above capacity), together with minimum working days (5 per missing day), room stability (1 per additional room) and curriculum compactness (2 per isolated lecture). The objective is
+\begin{equation}
+F(S)=100{,}000\cdot \mathrm{HCV}(S)+\mathrm{SCV}(S),
+\end{equation}
+which is lexicographic for these instances because a conservative bound on SCV, $5\sum_c\max(0,m_c-1)+\sum_c(\ell_c-1)+2\sum_c\ell_c\mu_c$, is below 25{,}600; a schedule is feasible when $\mathrm{HCV}=0$.
+
+All 21 ITC~2007 files are used and are byte-identical (SHA-256) to a published mirror. \code{comp15} is a structural duplicate of \code{comp03} and is excluded from inference ($N=20$). Table~\ref{tab:instances} lists the instances and best-known upper bounds~\cite{ceschia2022educational}, which were obtained with 300--500~s timeouts, comparable to the wall-clock of the runs reported here.
+
+\begin{table}[!t]
+\caption{Instances, sizes and best-known upper bounds~\cite{ceschia2022educational}. $^\dagger$Duplicate of \code{comp03}; excluded from inference.}
+\label{tab:instances}
+\centering
+\small
+\begin{tabular}{l r r r}
+\toprule
+Instance & Lectures & Constraints & Best known \\
+\midrule
+\code{comp01} & 160 & 53 & 5 \\
+\code{comp02} & 283 & 513 & 24 \\
+\code{comp03} & 251 & 382 & 64 \\
+\code{comp04} & 286 & 396 & 35 \\
+\code{comp05} & 152 & 771 & 284 \\
+\code{comp06} & 361 & 632 & 27 \\
+\code{comp07} & 434 & 667 & 6 \\
+\code{comp08} & 324 & 478 & 37 \\
+\code{comp09} & 279 & 405 & 96 \\
+\code{comp10} & 370 & 694 & 4 \\
+\code{comp11} & 162 & 94 & 0 \\
+\code{comp12} & 218 & 1{,}368 & 294 \\
+\code{comp13} & 308 & 468 & 59 \\
+\code{comp14} & 275 & 486 & 51 \\
+\code{comp15}$^\dagger$ & 251 & 382 & 62 \\
+\code{comp16} & 366 & 518 & 18 \\
+\code{comp17} & 339 & 548 & 56 \\
+\code{comp18} & 138 & 594 & 61 \\
+\code{comp19} & 277 & 475 & 57 \\
+\code{comp20} & 390 & 691 & 4 \\
+\code{comp21} & 327 & 463 & 74 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Method}
+\subsection{Encoding, diversity and parameter control}
+A schedule is a vector of $E$ integers encoding room--timeslot pairs. Population diversity is the normalized mean pairwise Hamming distance
+\begin{equation}
+H=\frac{2}{N(N-1)}\sum_{i<j}\frac{1}{E}\sum_{k}\mathbb{1}[c_{ik}\neq c_{jk}],
+\end{equation}
+computed in $O(N^2E)$ per generation and only for arms that use it. When enabled, the controller spans its admissible ranges:
+\begin{align}
+P_c &= 0.40+0.55\,H,\qquad P_m=0.01+0.09\,(1-H),
+\end{align}
+so that high diversity favours crossover and low diversity favours mutation. The span form avoids the failure mode of a multiplicative law with a small slope, which stays within a few percent of its base value and is indistinguishable from a constant.
+
+\subsection{Violation-directed elite local search}
+Each generation applies local search to the top $\lceil0.10N\rceil$ individuals (Algorithm~\ref{alg:els}). The candidate pool is the set of lectures in hard violations; once the schedule is feasible, it becomes the set of lectures in soft violations (courses short of working days, unstable across rooms, or isolated in a curriculum-day). A step picks a lecture from the pool and applies, with equal probability, a reassignment to a random room--timeslot pair or a swap with another lecture; moves are accepted on strict improvement, and the pool is refreshed every ten steps.
+
+\begin{algorithm}[!t]
+\caption{Violation-Directed Elite Local Search}
+\label{alg:els}
+\begin{algorithmic}[1]
+\For{each elite schedule $S$}
+    \For{$\text{step}=1$ to $S_{\max}$}
+        \If{$\text{step}\bmod 10=1$}
+            \State $\mathcal{K}\gets$ lectures in hard violations
+            \If{$\mathcal{K}=\emptyset$} $\mathcal{K}\gets$ lectures in soft violations \EndIf
+        \EndIf
+        \State $k\gets$ uniform from $\mathcal{K}$; $S'\gets$ reassign or swap $k$
+        \State evaluate $F(S')$; deduct one evaluation
+        \If{$F(S')<F(S)$} $S\gets S'$ \EndIf
+    \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Two-stage budget allocation}
+Seventy percent of the budget runs the generational population search; the remaining thirty percent is a final intensification of the single best schedule with the same move set and targeting rule. The split is explicit so that the population phase and the intensification phase have comparable, reportable shares.
+
+\section{Experimental Design}
+Five arms are compared: (i) \code{Canonical\_GA} ($P_c=0.80$, $P_m=0.05$, no local search); (ii) \code{Discrete\_PSO}, a deliberately naive recombination baseline with no velocity, in which each gene is copied from the personal best, the global best or a random slot with probabilities 0.40/0.40/0.20; (iii) \code{Simulated\_Annealing} ($T_0=100$, cooling 0.995, 50 steps per temperature, reassignment and swap moves); (iv) \code{GA\_ELS} (ELS with static parameters); and (v) \code{HAGA} (parameter control plus ELS). The ablation adds \code{GA\_APC} (control without local search) and \code{GA\_ELS\_Random} (identical budget and moves, random lecture selection) on \code{comp01}, \code{comp07} and \code{comp12} with 10 seeds.
+
+Every run uses exactly 50{,}000 objective evaluations; seeds are 101--130, shared across arms so that per-instance paired tests are possible. Seeds are paired within an instance and never pooled across instances. The statistical unit is the instance: medians across seeds form one observation per arm and instance, analysed with the Friedman omnibus test, the Iman--Davenport correction, Kendall's $W$, Nemenyi critical differences at $\alpha=0.05$ and $0.10$, per-instance paired Wilcoxon tests with Holm correction, and Wilson intervals for feasibility. Each experiment stores a manifest (instance and source hashes, dependencies, host metadata), and each run stores its full chromosome and monotone history; completed runs cannot be overwritten, and re-invocation executes only missing grid cells.
+
+\section{Results}
+\subsection{Reliability and quality}
+Table~\ref{tab:main} reports the five-arm comparison. Feasibility and conditional SCV separate the arms clearly: \code{GA\_ELS} and \code{HAGA} are feasible in 79.2\% and 77.3\% of runs versus 59.0\% for SA, while SA attains the lowest median SCV among feasible runs (684.5 versus 1{,}003.0 and 1{,}054.0). The canonical GA and the naive PSO never reach feasibility in 630 runs each; they serve as lower bounds, not as competitive baselines.
+
+\begin{table*}[!t]
+\caption{Main comparison (21 instances, 30 seeds, 50{,}000 evaluations). SCV is conditional on feasibility. The gap is the median ratio to the best-known value, over instances with at least one feasible run and excluding \code{comp11} (best-known $0$).}
+\label{tab:main}
+\centering
+\small
+\begin{tabular}{l c c c c}
+\toprule
+Arm & Feasible runs & Median SCV (feasible) & Median runtime & Gap to best-known \\
+\midrule
+Canonical GA          & 0/630 (0.0\%) & -- & 487.4 s & -- \\
+Discrete PSO (naive)  & 0/630 (0.0\%) & -- & 497.9 s & -- \\
+Simulated annealing   & 372/630 (59.0\%) & \textbf{684.5} & 494.1 s & \textbf{17.7}$\times$ \\
+GA\_ELS               & \textbf{499/630 (79.2\%)} & 1{,}054.0 & 540.6 s & 22.5$\times$ \\
+HAGA                  & 487/630 (77.3\%) & 1{,}003.0 & 509.8 s & 22.3$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Omnibus and paired inference}
+On the search objective (median fitness over the 30 seeds), simulated annealing ranks first (1.700), followed by GA\_ELS (2.075) and HAGA (2.225); the canonical GA and the naive PSO are last (4.000 and 5.000). The Friedman statistic is $\chi^2=65.33$ ($p=2.2\times10^{-13}$) with Iman--Davenport $F=84.6$ and Kendall's $W=0.817$. The Nemenyi critical difference is 1.364 at $\alpha=0.05$ and 1.230 at $\alpha=0.10$; the SA--HAGA rank gap (0.525) lies below both, so rank-based testing does not separate the three strongest arms.
+
+Per-instance paired Wilcoxon tests on the objective, Holm-corrected, show HAGA significantly better than SA on \code{comp11} ($p=0.002$), significantly worse on \code{comp04}, \code{comp08}, \code{comp13} and \code{comp14} ($p<0.005$), and statistically indistinguishable on the remaining fifteen instances. The reliable--versus-quality profile of Table~\ref{tab:main} is therefore not an artifact of aggregation: it is present instance by instance, with each method winning on a minority of instances and no global dominance.
+
+\subsection{Component ablation}
+Table~\ref{tab:ablation} isolates the components. Local search is necessary for feasibility: \code{Canonical\_GA} and \code{GA\_APC} never reach $\mathrm{HCV}=0$, while \code{GA\_ELS} solves every seed on \code{comp01} and \code{comp07}. Targeting is causal: with the same budget and moves, directed targeting solves 10/10 seeds on \code{comp07} and random targeting solves 0/10. Parameter control adds no median benefit: GA\_ELS and HAGA differ by 2.6\% and 2.0\% on the two feasible instances, in opposite directions.
+
+\begin{table}[!t]
+\caption{Controlled ablation (10 seeds per cell, 50{,}000 evaluations).}
+\label{tab:ablation}
+\centering
+\small
+\begin{tabular}{ll c c}
+\toprule
+Instance & Arm & Feasible & Median SCV \\
+\midrule
+\multirow{5}{*}{\code{comp01}}
+& Canonical GA      & 0/10 & -- \\
+& GA\_APC           & 0/10 & -- \\
+& GA\_ELS           & 10/10 & 249.5 \\
+& GA\_ELS\_Random   & 10/10 & 307.0 \\
+& HAGA              & 10/10 & 256.0 \\
+\midrule
+\multirow{5}{*}{\code{comp07}}
+& Canonical GA      & 0/10 & -- \\
+& GA\_APC           & 0/10 & -- \\
+& GA\_ELS           & 10/10 & 2{,}462.0 \\
+& GA\_ELS\_Random   & 0/10 & -- \\
+& HAGA              & 8/10 & 2{,}413.0 \\
+\midrule
+\multirow{5}{*}{\code{comp12}}
+& Canonical GA      & 0/10 & -- \\
+& GA\_APC           & 0/10 & -- \\
+& GA\_ELS           & 2/10 & 1{,}942.5 \\
+& GA\_ELS\_Random   & 0/10 & -- \\
+& HAGA              & 1/10 & 1{,}473.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Parameter sensitivity}
+Table~\ref{tab:sensitivity} reports the span-law sensitivity on \code{comp01}. All seven configurations reach 10/10 feasibility, and the conditional SCV spans 192.5--332.5 with overlapping intervals. The table documents the robustness of the parameterisation used in the main comparison; the apparent advantage of a smaller population ($N=30$) is a single-instance trend and was not used for tuning.
+
+\begin{table}[!t]
+\caption{Span-law sensitivity on \code{comp01} (10 seeds, 50{,}000 evaluations), stratified by feasibility.}
+\label{tab:sensitivity}
+\centering
+\small
+\begin{tabular}{l c c c}
+\toprule
+Configuration & Feasible & Median SCV & SCV IQR \\
+\midrule
+Baseline ($N=50$, $P_{c,\min}=0.40$, $P_{m,\max}=0.10$) & 10/10 & 256.0 & 66.8 \\
+$P_{c,\min}=0.30$ & 10/10 & 200.0 & 57.2 \\
+$P_{c,\min}=0.55$ & 10/10 & 275.5 & 65.2 \\
+$P_{m,\max}=0.05$ & 10/10 & 271.0 & 45.8 \\
+$P_{m,\max}=0.20$ & 10/10 & 249.5 & 25.2 \\
+$N=30$ & 10/10 & 192.5 & 50.0 \\
+$N=100$ & 10/10 & 332.5 & 77.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Mean-matched parameter control}
+\label{sec:matched}
+Because the adaptive arm realises a mean crossover rate of 0.706 rather than the static 0.80, the previous subsection compares adaptivity with a different operating point. A mean-matched static arm ($P_c=0.70$, otherwise identical to GA\_ELS) gives median SCV 254.5 with 10/10 feasible runs on \code{comp01}, against 256.0 for the adaptive arm on the same seeds (0.6\% difference); at the original static rate of 0.80 the median is 249.5. The median effect of adaptivity is therefore indistinguishable at matched operating points, although the adaptive arm shows lower dispersion (IQR 66.8 versus 76.2 and 166.8), which ten seeds cannot resolve.
+
+\subsection{Distance to best-known}
+The median gap to best-known is 17.7$\times$ for SA and 22.3--22.5$\times$ for the ELS arms, on comparable wall-clock (about 500~s per run against the 300--500~s timeouts of the reference values). \code{comp05} is infeasible for every arm under the 50{,}000-evaluation budget and \code{comp12} for most arms; for these two constraint-dense instances the budget is insufficient regardless of method.
+
+\section{Discussion}
+The mechanism behind the ablation is visible in the neighbourhood. At a feasible schedule the hard-conflict set is empty, so an untargeted local search samples lectures uniformly and spends its budget on moves that cannot improve the objective: on a feasible \code{comp01} schedule, 0 of 400 random single-gene reassignments improved the composite fitness, while 9 of 400 swaps did. Directed targeting changes the proposal distribution exactly where the search would otherwise stall; the random-target control keeps the budget and loses the effect. The two-stage split matters for the same reason: it reserves enough depth for the intensification phase to exploit the feasible region that the population phase has found.
+
+Why parameter control does not help, even spanning its full range, is the more interesting negative result. Two explanations are consistent with the data: selection pressure and the local search dominate the search, and the mutation range that matters is narrow once the schedule is feasible. The methodological lesson transfers: a controller must be compared with a static arm at matched base rates, otherwise its effect cannot be separated from the parameter change that accompanies it.
+
+\section{Threats to Validity}
+\textbf{Construct validity.} Room capacity is soft, following the reference formulation; results are not comparable to studies that treat it as hard. The scalar objective uses $W=100{,}000$; the bound of Section~\ref{sec:problem} shows this is lexicographic for these instances.
+
+\textbf{Internal validity.} Budget parity is defined in objective evaluations, not wall-clock time; runtime is reported but not used for inference. The SA baseline's geometric schedule is truncated by the budget (terminal temperature 0.67 rather than 0.001), which, with the $100{,}000$ hard-violation weight, makes SA effectively greedy with respect to hard constraints---a conservative but strong baseline.
+
+\textbf{External validity.} The study covers one problem family and one benchmark suite; \code{comp05} and \code{comp12} remain infeasible for every arm under the fixed budget, so conclusions about feasibility should not be generalized to constraint densities beyond this range.
+
+\textbf{Conclusion validity.} Seeds are paired within an instance and never pooled across instances; \code{comp15} is excluded as a structural duplicate; per-instance tests are Holm-corrected; and critical differences are reported at two significance levels because adjacent-rank conclusions are sensitive to $\alpha$.
+
+\section{Conclusion}
+At a fixed evaluation budget, the comparison of metaheuristics for CB-CTT is a comparison of two outcomes, not one. Violation-directed elite local search buys reliability: it reaches feasibility in roughly four of five runs where simulated annealing succeeds in three of five, and its direction is causal. Simulated annealing buys quality: among feasible runs, its soft-constraint penalty is about a third lower. Adaptive parameter control buys neither, once operating points are matched. Future work should test repair-based initialisation to eliminate the residual infeasible runs, budget scaling against the best-known anchor, and adaptive targeting rules whose benefit is evaluated with the same controlled design used here.
+
+\section*{Funding}
+\pending{funding statement}
+
+\section*{Conflict of Interest}
+The authors declare no conflict of interest.
+
+\section*{Data Availability}
+The analysis scripts and manifests are included in the repository; the per-run records are available from the corresponding author on reasonable request.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}
